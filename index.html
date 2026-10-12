@@ -2,495 +2,1073 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#050508">
-<title>MONOMOD · v13.6</title>
+<title>MONOMOD OS</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#050508;color:#c8c8d4;font-family:'Courier New',monospace;overflow:hidden}
-body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Courier New',monospace;color:#c8c8d4}
 
-#h-slider{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-#h-slider::-webkit-scrollbar{display:none}
+/* ═══ BOOT SCREEN ═══ */
+#boot{position:fixed;inset:0;background:#050508;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;transition:opacity 1s}
+#boot .logo{font-size:24px;letter-spacing:8px;color:#4dd0c7;margin-bottom:20px}
+#boot .bar{width:200px;height:2px;background:#1c1c26;overflow:hidden}
+#boot .bar-fill{height:100%;background:#4dd0c7;width:0%;transition:width 0.3s}
+#boot .msg{margin-top:12px;font-size:10px;color:#555;letter-spacing:2px}
 
-.tab{flex:0 0 100vw;height:100%;scroll-snap-align:start;display:flex;flex-direction:column;border-right:1px solid #14141c;position:relative}
+/* ═══ LOGIN ═══ */
+#login{position:fixed;inset:0;background:#050508;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9000}
+#login h2{color:#4dd0c7;letter-spacing:4px;margin-bottom:20px;font-size:14px}
+#login .obs-list{max-height:40vh;overflow-y:auto;width:80%;max-width:300px}
+#login .obs-item{padding:10px;margin:4px 0;background:#0a0a12;border:1px solid #1c1c26;border-radius:4px;cursor:pointer;font-size:11px}
+#login .obs-item:hover{border-color:#4dd0c7}
+#login .obs-item.active{border-color:#ffd700;color:#ffd700}
+#login input{margin-top:12px;padding:8px;background:#0a0a12;border:1px solid #1c1c26;color:#c8c8d4;font:inherit;width:80%;max-width:300px;font-size:11px}
+#login button{margin-top:8px;padding:8px 20px;background:transparent;border:1px solid #4dd0c7;color:#4dd0c7;font:inherit;cursor:pointer;font-size:11px}
 
-/* ВКЛАДКА 1: СОСТОЯНИЕ (3D зум) */
-#tab-state{align-items:center;justify-content:center}
-#state-canvas{width:100%;height:100%;position:absolute;top:0;left:0;touch-action:none}
-.state-info{position:absolute;bottom:80px;left:0;right:0;text-align:center;font-size:10px;color:#555;z-index:2;pointer-events:none}
-.state-info b{color:#ffd700}
-.state-label{position:absolute;top:20px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:3px;color:#4dd0c7;z-index:2}
-.zoom-hint{position:absolute;bottom:60px;left:0;right:0;text-align:center;font-size:9px;color:#333;z-index:2}
+/* ═══ DESKTOP ═══ */
+#desktop{position:fixed;inset:0;background:radial-gradient(ellipse at center,#0a0a14 0%,#050508 100%);display:none;overflow:hidden}
+#desktop-icons{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:16px}
+.desktop-icon{width:70px;text-align:center;cursor:pointer;padding:8px;border-radius:4px}
+.desktop-icon:hover{background:rgba(77,208,199,0.1)}
+.desktop-icon .ico{font-size:28px;margin-bottom:4px}
+.desktop-icon .lbl{font-size:9px;color:#c8c8d4;word-break:break-word}
 
-/* ВКЛАДКА 2: ОТВЕТ + 5D граф */
-#tab-answer .v-slider{display:flex;flex-direction:column;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
-#tab-answer .v-page{flex:0 0 100%;scroll-snap-align:start;display:flex;flex-direction:column;padding:16px;padding-top:calc(40px + env(safe-area-inset-top))}
-#tab-answer .v-top{flex:1;display:flex;flex-direction:column;justify-content:center}
-.answer-box{padding:20px;background:#0a0a12;border:1px solid #ffd700;color:#ffd700;font-size:16px;text-align:center;min-height:120px;display:flex;align-items:center;justify-content:center;line-height:1.6;word-break:break-word;border-radius:4px}
-.answer-meta{font-size:10px;color:#555;margin-top:12px;text-align:center}
-.graph-nav{margin-top:20px;padding:12px;background:#0a0a12;border:1px solid #1c1c26;border-radius:4px;font-size:11px}
-.graph-nav .title{color:#4dd0c7;margin-bottom:8px;font-size:10px}
-.graph-link{display:inline-block;padding:4px 8px;margin:2px;background:#14141c;border-radius:3px;color:#c8c8d4;cursor:pointer}
-.graph-link:active{background:#4dd0c7;color:#050508}
-.answer-hint{font-size:9px;color:#333;text-align:center;margin-top:20px}
-#tab-answer .v-input{display:flex;flex-direction:column;justify-content:flex-end;padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+/* ═══ TASKBAR ═══ */
+#taskbar{position:fixed;bottom:0;left:0;right:0;height:36px;background:#08080c;border-top:1px solid #1c1c26;display:flex;align-items:center;padding:0 8px;z-index:5000;gap:4px}
+.tb-btn{padding:4px 10px;background:#0a0a12;border:1px solid #1c1c26;color:#c8c8d4;font:inherit;font-size:10px;cursor:pointer;border-radius:3px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-btn.active{border-color:#4dd0c7;color:#4dd0c7}
+.tb-btn.start{background:#0a0a12;border-color:#4dd0c7;color:#4dd0c7}
+.tb-clock{margin-left:auto;font-size:10px;color:#555}
 
-/* ВКЛАДКА 3: ЛОГ + 4D время */
-#tab-log .v-slider{display:flex;flex-direction:column;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
-#tab-log .v-page{flex:0 0 100%;scroll-snap-align:start;display:flex;flex-direction:column;padding:16px;padding-top:calc(40px + env(safe-area-inset-top))}
-#tab-log .v-top{flex:1;overflow:hidden;display:flex;flex-direction:column}
-.log-title{font-size:11px;letter-spacing:3px;color:#4dd0c7;margin-bottom:12px}
-.log-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:10px}
-.log-metrics .m{padding:6px;background:#0a0a12;border:1px solid #14141c;border-radius:3px}
-.log-metrics .k{color:#555;display:block;font-size:8px}
-.log-metrics .v{color:#ffd700;font-size:12px}
-.timeline{margin-bottom:12px;padding:8px;background:#0a0a12;border:1px solid #14141c;border-radius:4px;max-height:80px;overflow-y:auto}
-.timeline .title{color:#8b5cf6;font-size:10px;margin-bottom:6px}
-.timeline-item{font-size:9px;color:#555;padding:2px 0;border-bottom:1px dotted #14141c;cursor:pointer}
-.timeline-item:active{color:#ffd700}
-.log-box{flex:1;overflow-y:auto;font-size:10px;line-height:1.5;color:#555}
-.log-box div{padding:2px 0;border-bottom:1px dotted #14141c}
-.log-box .gold{color:#ffd700}.log-box .cmd{color:#4dd0c7}.log-box .err{color:#ff4757}
-#tab-log .v-input{display:flex;flex-direction:column;justify-content:flex-end;padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+/* ═══ START MENU ═══ */
+#start-menu{position:fixed;bottom:40px;left:8px;width:220px;background:#0a0a12;border:1px solid #1c1c26;border-radius:4px;padding:8px;display:none;z-index:5001;max-height:60vh;overflow-y:auto}
+#start-menu .sm-item{padding:8px;font-size:11px;cursor:pointer;border-radius:3px}
+#start-menu .sm-item:hover{background:#14141c}
+#start-menu .sm-sep{height:1px;background:#1c1c26;margin:4px 0}
 
-.input-label{font-size:10px;color:#555;letter-spacing:2px;margin-bottom:12px;text-align:center}
-.input-field{width:100%;padding:14px;background:#0a0a12;border:1px solid #1c1c26;color:#c8c8d4;font:inherit;font-size:15px;outline:none;border-radius:4px}
-.input-field:focus{border-color:#4dd0c7}
+/* ═══ WINDOWS ═══ */
+.window{position:absolute;background:#0a0a12;border:1px solid #1c1c26;border-radius:4px;min-width:200px;min-height:120px;display:flex;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,0.5);overflow:hidden}
+.window.active{border-color:#4dd0c7;box-shadow:0 4px 30px rgba(77,208,199,0.2)}
+.window.minimized{display:none}
+.win-title{height:28px;background:#08080c;display:flex;align-items:center;padding:0 8px;cursor:move;border-bottom:1px solid #1c1c26;font-size:10px;letter-spacing:1px}
+.win-title .t{flex:1;color:#4dd0c7}
+.win-ctrl{display:flex;gap:4px}
+.win-ctrl button{width:20px;height:20px;background:transparent;border:1px solid #1c1c26;color:#555;cursor:pointer;font-size:10px;border-radius:2px}
+.win-ctrl button:hover{color:#c8c8d4;border-color:#555}
+.win-body{flex:1;overflow:auto;padding:8px;font-size:11px;line-height:1.5}
+.win-resize{position:absolute;right:0;bottom:0;width:12px;height:12px;cursor:nwse-resize}
 
-#nav{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10;background:rgba(5,5,8,0.8);padding:6px 10px;border-radius:20px;border:1px solid #1c1c26}
-.dot{width:6px;height:6px;border-radius:50%;background:#333;cursor:pointer;transition:0.2s}
-.dot.active{background:#4dd0c7;width:18px;border-radius:3px}
-.spiral-indicator{position:fixed;top:calc(8px + env(safe-area-inset-top));left:10px;font-size:9px;color:#4dd0c7;z-index:10;background:rgba(5,5,8,0.7);padding:4px 8px;border-radius:10px}
-.spiral-indicator b{color:#ffd700}
+/* ═══ TERMINAL APP ═══ */
+.term{background:#050508;color:#c8c8d4;font-family:'Courier New',monospace;font-size:12px;padding:8px;height:100%;overflow-y:auto}
+.term .line{margin-bottom:2px;white-space:pre-wrap;word-break:break-word}
+.term .prompt{color:#4dd0c7}
+.term .err{color:#ff4757}
+.term .ok{color:#2ed573}
+.term .gold{color:#ffd700}
+.term input{background:transparent;border:none;color:#c8c8d4;font:inherit;font-size:12px;outline:none;width:80%}
+
+/* ═══ FILE MANAGER ═══ */
+.fm-path{padding:6px;background:#08080c;border-bottom:1px solid #1c1c26;font-size:10px;color:#555}
+.fm-list{padding:8px}
+.fm-item{padding:6px;cursor:pointer;border-radius:3px;font-size:11px}
+.fm-item:hover{background:#14141c}
+.fm-item.dir{color:#4dd0c7}
+.fm-item.file{color:#c8c8d4}
+
+/* ═══ GRAPH VIEWER ═══ */
+#graph-canvas{width:100%;height:100%;background:#050508}
+
+/* ═══ SETTINGS ═══ */
+.settings-row{padding:8px;border-bottom:1px solid #14141c;font-size:11px}
+.settings-row label{color:#555;display:block;margin-bottom:4px}
+.settings-row input,.settings-row select{background:#050508;border:1px solid #1c1c26;color:#c8c8d4;padding:4px 8px;font:inherit;width:100%}
+
+/* ═══ CONTEXT MENU ═══ */
+#ctx-menu{position:fixed;background:#0a0a12;border:1px solid #1c1c26;border-radius:4px;padding:4px;display:none;z-index:9999;min-width:140px}
+#ctx-menu .ctx-item{padding:6px 10px;font-size:11px;cursor:pointer}
+#ctx-menu .ctx-item:hover{background:#14141c}
+
+/* ═══ NOTIFICATION ═══ */
+.notif{position:fixed;top:20px;right:20px;background:#0a0a12;border:1px solid #4dd0c7;border-radius:4px;padding:10px 16px;font-size:11px;z-index:9998;animation:slideIn 0.3s}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 </style>
 </head>
 <body>
 
-<div id="h-slider">
-  
-  <!-- ВКЛАДКА 1: СОСТОЯНИЕ (3D) -->
-  <div class="tab" id="tab-state">
-    <canvas id="state-canvas"></canvas>
-    <div class="state-label" id="state-label">ТИШИНА</div>
-    <div class="state-info">
-      δ: <b id="s-delta">0.000</b> · y: <b id="s-y">110.347</b><br>
-      фаза: <b id="s-phase">collect</b> · L<b id="s-level">0</b><br>
-      хэш: <b id="s-hash">—</b> · <b id="s-edges">0</b> связей
-    </div>
-    <div class="zoom-hint" id="zoom-hint">щипок для зума</div>
-  </div>
-
-  <!-- ВКЛАДКА 2: ОТВЕТ (5D) -->
-  <div class="tab" id="tab-answer">
-    <div class="v-slider">
-      <div class="v-page v-top">
-        <div class="answer-box" id="answer-box">тишина...</div>
-        <div class="answer-meta" id="answer-meta"></div>
-        <div class="graph-nav" id="graph-nav" style="display:none">
-          <div class="title">СВЯЗАННЫЕ СМЫСЛЫ (5D)</div>
-          <div id="graph-links"></div>
-        </div>
-        <div class="answer-hint">↑ свайп для ввода</div>
-      </div>
-      <div class="v-page v-input">
-        <div class="input-label">ИМПУЛЬС</div>
-        <input class="input-field" id="input-2" placeholder="свет глубина смысл" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      </div>
-    </div>
-  </div>
-
-  <!-- ВКЛАДКА 3: ЛОГ (4D) -->
-  <div class="tab" id="tab-log">
-    <div class="v-slider">
-      <div class="v-page v-top">
-        <div class="log-title">MONOMODE · ЛОГ</div>
-        <div class="log-metrics">
-          <div class="m"><span class="k">Ψ</span><span class="v" id="l-psi">.36</span></div>
-          <div class="m"><span class="k">Ω</span><span class="v" id="l-omega">.33</span></div>
-          <div class="m"><span class="k">Λ</span><span class="v" id="l-lambda">.31</span></div>
-          <div class="m"><span class="k">δ</span><span class="v" id="l-delta">0.000</span></div>
-          <div class="m"><span class="k">y</span><span class="v" id="l-y">110.347</span></div>
-          <div class="m"><span class="k">связей</span><span class="v" id="l-edges">0</span></div>
-          <div class="m"><span class="k">фаза</span><span class="v" id="l-phase">collect</span></div>
-          <div class="m"><span class="k">уровень</span><span class="v" id="l-level">L0</span></div>
-        </div>
-        <div class="timeline" id="timeline" style="display:none">
-          <div class="title">ИСТОРИЯ (4D)</div>
-          <div id="timeline-items"></div>
-        </div>
-        <div class="log-box" id="log-box"></div>
-      </div>
-      <div class="v-page v-input">
-        <div class="input-label">ИМПУЛЬС</div>
-        <input class="input-field" id="input-3" placeholder="свет глубина смысл" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      </div>
-    </div>
-  </div>
-
+<!-- BOOT -->
+<div id="boot">
+  <div class="logo">MONOMOD OS</div>
+  <div class="bar"><div class="bar-fill" id="boot-bar"></div></div>
+  <div class="msg" id="boot-msg">Инициализация ядра...</div>
 </div>
 
-<div id="nav">
-  <div class="dot active" data-idx="0"></div>
-  <div class="dot" data-idx="1"></div>
-  <div class="dot" data-idx="2"></div>
+<!-- LOGIN -->
+<div id="login">
+  <h2>ВЫБОР НАБЛЮДАТЕЛЯ</h2>
+  <div class="obs-list" id="login-obs-list"></div>
+  <input id="login-new" placeholder="Новый наблюдатель (имя или фраза-ключ)...">
+  <button id="login-btn">ВОЙТИ</button>
 </div>
 
-<div class="spiral-indicator">L<b id="t-level">0</b> · <b id="t-edges">0</b></div>
+<!-- DESKTOP -->
+<div id="desktop">
+  <div id="desktop-icons"></div>
+  <div id="windows-container"></div>
+</div>
+
+<!-- TASKBAR -->
+<div id="taskbar" style="display:none">
+  <button class="tb-btn start" id="start-btn">☰ MONOMOD</button>
+  <div id="taskbar-windows"></div>
+  <div class="tb-clock" id="tb-clock">00:00</div>
+</div>
+
+<!-- START MENU -->
+<div id="start-menu">
+  <div class="sm-item" data-app="terminal"> Терминал</div>
+  <div class="sm-item" data-app="files">📁 Файлы</div>
+  <div class="sm-item" data-app="graph">◉ Граф 26D</div>
+  <div class="sm-item" data-app="spiral">◎ Спираль</div>
+  <div class="sm-item" data-app="observers">👁 Наблюдатели</div>
+  <div class="sm-item" data-app="lineage"> Родословная</div>
+  <div class="sm-item" data-app="settings"> Настройки</div>
+  <div class="sm-item" data-app="about"> О системе</div>
+  <div class="sm-sep"></div>
+  <div class="sm-item" data-app="sleep"> Сон / Fold</div>
+  <div class="sm-item" data-app="reboot">↻ Перезагрузка</div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu"></div>
 
 <script>
-// ═══════════════════════════════════════════════
-// КОНВЕЙЕР
-// ═══════════════════════════════════════════════
-var Conveyor = {
-  state: { y: 110.347, breath: 0, phase: 0, spiral: 0, systemState: 'idle', zoom: 1 },
-  tri: { psi: 0.36, lambda: 0.31, omega: 0.33 },
-  history: [],
+"use strict";
+
+// ═══════════════════════════════════════════════════════════════
+// ЯДРО ОС · MONOMOD OS v15.0
+// ═══════════════════════════════════════════════════════════════
+
+const OS = {
+  version: '15.0',
+  bootTime: Date.now(),
+  currentObserver: null,
+  windows: new Map(),
+  windowZ: 100,
+  activeWindow: null,
   
-  G: {
-    data: new Map(),
-    load: function(){ try { var r = localStorage.getItem('monomod_universal_graph_v1'); if (r) this.data = new Map(JSON.parse(r)); } catch(e){} },
-    save: function(){ localStorage.setItem('monomod_universal_graph_v1', JSON.stringify(Array.from(this.data.entries()))); },
-    strengthen: function(a, b, type, plane){
-      var key = [a,b].sort().join('\u2192');
-      var e = this.data.get(key) || { w: 0.3, c: 0, type: type||'linear', plane: plane||'\u043F\u0440\u044F\u043C\u0430\u044F', t: Date.now() };
-      e.w = Math.min(1, e.w * 1.05); e.c++; e.t = Date.now();
-      this.data.set(key, e); this.save();
+  // ─── УТИЛИТЫ ──
+  hash(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) {
+      h = ((h << 5) - h) + s.charCodeAt(i);
+      h |= 0;
+    }
+    return Math.abs(h).toString(16).toUpperCase().padStart(8, '0');
+  },
+  
+  uid() {
+    return Math.random().toString(36).substr(2, 8);
+  },
+  
+  notify(text, type = 'ok') {
+    const n = document.createElement('div');
+    n.className = 'notif';
+    n.style.borderColor = type === 'err' ? '#ff4757' : type === 'gold' ? '#ffd700' : '#4dd0c7';
+    n.textContent = text;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
+  },
+  
+  // ─── ФАЙЛОВАЯ СИСТЕМА (VFS) ───
+  fs: {
+    root: '/',
+    storage: {},
+    
+    init() {
+      const saved = localStorage.getItem('mm_os_fs');
+      if (saved) {
+        try { this.storage = JSON.parse(saved); } catch(e) { this.storage = {}; }
+      }
+      // Структура по умолчанию
+      if (!this.storage['/']) this.storage['/'] = { type: 'dir', children: ['home', 'system', 'tmp'] };
+      if (!this.storage['/home']) this.storage['/home'] = { type: 'dir', children: [] };
+      if (!this.storage['/system']) this.storage['/system'] = { type: 'dir', children: ['config.sys', 'kernel.log'] };
+      if (!this.storage['/tmp']) this.storage['/tmp'] = { type: 'dir', children: [] };
+      if (!this.storage['/system/config.sys']) {
+        this.storage['/system/config.sys'] = { type: 'file', content: 'MONOMOD OS v15.0\nObserver: ' + (OS.currentObserver || 'unknown') };
+      }
+      if (!this.storage['/system/kernel.log']) {
+        this.storage['/system/kernel.log'] = { type: 'file', content: '[boot] OS initialized\n[boot] VFS mounted\n[boot] Ready' };
+      }
     },
-    getRelated: function(word, minW){
-      var result = []; minW = minW || 0.5;
-      this.data.forEach(function(link, key){
-        if (link.w >= minW) {
-          var parts = key.split('\u2192');
-          if (parts[0] === word) result.push({ word: parts[1], w: link.w, type: link.type });
-          else if (parts[1] === word) result.push({ word: parts[0], w: link.w, type: link.type });
+    
+    save() {
+      localStorage.setItem('mm_os_fs', JSON.stringify(this.storage));
+    },
+    
+    resolve(path) {
+      if (!path.startsWith('/')) path = '/' + path;
+      const parts = path.split('/').filter(Boolean);
+      let current = '/';
+      for (const p of parts) {
+        if (p === '..') {
+          const pp = current.split('/').filter(Boolean);
+          pp.pop();
+          current = '/' + pp.join('/');
+          if (!current) current = '/';
+        } else if (p !== '.') {
+          current = current === '/' ? '/' + p : current + '/' + p;
         }
-      });
-      return result.sort(function(a,b){ return b.w - a.w; });
+      }
+      return current;
     },
-    topWeight: function(){ var max = 0; this.data.forEach(function(l){ if (l.w > max) max = l.w; }); return max; },
-    detectPlane: function(t){
-      if (/\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442|\u0432\u0441\u043F\u044F\u0442\u044C/.test(t)) return '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442';
-      if (/\u0437\u0435\u0440\u043A\u0430\u043B|\u043E\u0442\u0440\u0430\u0436/.test(t)) return '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F';
-      if (/\u0432\u043D\u0443\u0442\u0440|\u0433\u043B\u0443\u0431/.test(t)) return '\u0438\u0437\u043D\u0443\u0442\u0440\u0438';
-      if (/\u043C\u0435\u0436\u0434\u0443|\u043F\u0435\u0440\u0435\u0445\u043E\u0434/.test(t)) return '\u043C\u0435\u0436\u0434\u0443';
-      if (/\u043D\u0438\u0447\u0435\u0433|\u043D\u043E\u043B\u044C/.test(t)) return '\u043D\u0438\u043A\u0430\u043A';
-      return '\u043F\u0440\u044F\u043C\u0430\u044F';
+    
+    ls(path) {
+      const p = this.resolve(path);
+      const node = this.storage[p];
+      if (!node) return null;
+      if (node.type === 'dir') return node.children.map(c => ({ name: c, type: this.storage[p + '/' + c]?.type || 'unknown' }));
+      return null;
     },
-    detectType: function(t){
-      if (/\u0434\u043E|\u043F\u0435\u0440\u0435\u0434/.test(t)) return 'before';
-      if (/\u0432\u043F\u0435\u0440\u0432\u044B\u0435/.test(t)) return 'first';
-      if (/\u043E\u0442\u0440\u0430\u0436/.test(t)) return 'mirror';
-      return 'linear';
+    
+    cat(path) {
+      const p = this.resolve(path);
+      const node = this.storage[p];
+      if (!node || node.type !== 'file') return null;
+      return node.content;
+    },
+    
+    write(path, content) {
+      const p = this.resolve(path);
+      this.storage[p] = { type: 'file', content, modified: Date.now() };
+      // Добавить в родительскую директорию
+      const parent = p.substring(0, p.lastIndexOf('/')) || '/';
+      const parentName = p.substring(p.lastIndexOf('/') + 1);
+      if (this.storage[parent] && this.storage[parent].type === 'dir') {
+        if (!this.storage[parent].children.includes(parentName)) {
+          this.storage[parent].children.push(parentName);
+        }
+      }
+      this.save();
+    },
+    
+    mkdir(path) {
+      const p = this.resolve(path);
+      this.storage[p] = { type: 'dir', children: [], created: Date.now() };
+      const parent = p.substring(0, p.lastIndexOf('/')) || '/';
+      const parentName = p.substring(p.lastIndexOf('/') + 1);
+      if (this.storage[parent] && this.storage[parent].type === 'dir') {
+        if (!this.storage[parent].children.includes(parentName)) {
+          this.storage[parent].children.push(parentName);
+        }
+      }
+      this.save();
+    },
+    
+    rm(path) {
+      const p = this.resolve(path);
+      if (p === '/') return false;
+      delete this.storage[p];
+      const parent = p.substring(0, p.lastIndexOf('/')) || '/';
+      const parentName = p.substring(p.lastIndexOf('/') + 1);
+      if (this.storage[parent]?.children) {
+        this.storage[parent].children = this.storage[parent].children.filter(c => c !== parentName);
+      }
+      this.save();
+      return true;
     }
   },
   
-  PHASES: ['collect','filter','route','process','reflect','crystal','release'],
-  INV: {'\u0441\u0432\u0435\u0442':'\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E \u0442\u0435\u043D\u0438','\u0442\u044C\u043C\u0430':'\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E \u0441\u0432\u0435\u0442\u0430','\u0433\u043B\u0443\u0431\u0438\u043D\u0430':'\u0442\u043E, \u0447\u0442\u043E \u043D\u0430 \u043F\u043E\u0432\u0435\u0440\u0445\u043D\u043E\u0441\u0442\u0438','\u0441\u0432\u044F\u0437\u044C':'\u0442\u043E, \u0447\u0442\u043E \u043C\u0435\u0436\u0434\u0443','\u0441\u043C\u044B\u0441\u043B':'\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0441\u043B\u043E\u0432\u0430','\u0444\u043E\u0440\u043C\u0430':'\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0444\u043E\u0440\u043C\u044B','\u044F':'\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u044F','\u0442\u044B':'\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0442\u0435\u0431\u044F','\u0442\u0438\u0448\u0438\u043D\u0430':'\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0437\u0432\u0443\u043A\u0430','\u043F\u0430\u043C\u044F\u0442\u044C':'\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0437\u0430\u0431\u0432\u0435\u043D\u0438\u044F'},
+  // ─── МЕНЕДЖЕР ОКОН ───
+  wm: {
+    create(appId, title, content, opts = {}) {
+      const id = 'win-' + OS.uid();
+      const w = document.createElement('div');
+      w.className = 'window';
+      w.id = id;
+      w.style.width = (opts.width || 400) + 'px';
+      w.style.height = (opts.height || 300) + 'px';
+      w.style.left = (50 + (OS.windows.size * 20)) + 'px';
+      w.style.top = (50 + (OS.windows.size * 20)) + 'px';
+      w.style.zIndex = ++OS.windowZ;
+      
+      w.innerHTML = `
+        <div class="win-title">
+          <span class="t">${title}</span>
+          <div class="win-ctrl">
+            <button data-act="min">_</button>
+            <button data-act="max">□</button>
+            <button data-act="close">×</button>
+          </div>
+        </div>
+        <div class="win-body"></div>
+        <div class="win-resize"></div>
+      `;
+      
+      w.querySelector('.win-body').appendChild(content);
+      document.getElementById('windows-container').appendChild(w);
+      
+      OS.windows.set(id, { id, appId, title, element: w, minimized: false, maximized: false });
+      OS.wm.focus(id);
+      OS.wm.setupDrag(w);
+      OS.wm.setupResize(w);
+      OS.wm.setupControls(w, id);
+      OS.wm.updateTaskbar();
+      
+      return id;
+    },
+    
+    focus(id) {
+      const win = OS.windows.get(id);
+      if (!win) return;
+      OS.windows.forEach(w => w.element.classList.remove('active'));
+      win.element.classList.add('active');
+      win.element.style.zIndex = ++OS.windowZ;
+      OS.activeWindow = id;
+      OS.wm.updateTaskbar();
+    },
+    
+    close(id) {
+      const win = OS.windows.get(id);
+      if (!win) return;
+      win.element.remove();
+      OS.windows.delete(id);
+      OS.wm.updateTaskbar();
+    },
+    
+    minimize(id) {
+      const win = OS.windows.get(id);
+      if (!win) return;
+      win.minimized = !win.minimized;
+      win.element.classList.toggle('minimized', win.minimized);
+      OS.wm.updateTaskbar();
+    },
+    
+    maximize(id) {
+      const win = OS.windows.get(id);
+      if (!win) return;
+      win.maximized = !win.maximized;
+      if (win.maximized) {
+        win.element.style.left = '0';
+        win.element.style.top = '0';
+        win.element.style.width = '100%';
+        win.element.style.height = 'calc(100% - 36px)';
+      } else {
+        win.element.style.width = '400px';
+        win.element.style.height = '300px';
+        win.element.style.left = '50px';
+        win.element.style.top = '50px';
+      }
+    },
+    
+    setupDrag(w) {
+      const title = w.querySelector('.win-title');
+      let dragging = false, startX, startY, origX, origY;
+      title.addEventListener('mousedown', e => {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true;
+        startX = e.clientX; startY = e.clientY;
+        origX = w.offsetLeft; origY = w.offsetTop;
+        OS.wm.focus(w.id);
+        e.preventDefault();
+      });
+      document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        w.style.left = (origX + e.clientX - startX) + 'px';
+        w.style.top = (origY + e.clientY - startY) + 'px';
+      });
+      document.addEventListener('mouseup', () => dragging = false);
+      
+      // Touch
+      title.addEventListener('touchstart', e => {
+        if (e.target.tagName === 'BUTTON') return;
+        dragging = true;
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        origX = w.offsetLeft; origY = w.offsetTop;
+        OS.wm.focus(w.id);
+      }, { passive: true });
+      document.addEventListener('touchmove', e => {
+        if (!dragging) return;
+        w.style.left = (origX + e.touches[0].clientX - startX) + 'px';
+        w.style.top = (origY + e.touches[0].clientY - startY) + 'px';
+      }, { passive: true });
+      document.addEventListener('touchend', () => dragging = false);
+    },
+    
+    setupResize(w) {
+      const handle = w.querySelector('.win-resize');
+      let resizing = false, startX, startY, origW, origH;
+      handle.addEventListener('mousedown', e => {
+        resizing = true;
+        startX = e.clientX; startY = e.clientY;
+        origW = w.offsetWidth; origH = w.offsetHeight;
+        e.preventDefault(); e.stopPropagation();
+      });
+      document.addEventListener('mousemove', e => {
+        if (!resizing) return;
+        w.style.width = Math.max(200, origW + e.clientX - startX) + 'px';
+        w.style.height = Math.max(120, origH + e.clientY - startY) + 'px';
+      });
+      document.addEventListener('mouseup', () => resizing = false);
+    },
+    
+    setupControls(w, id) {
+      w.querySelectorAll('.win-ctrl button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const act = btn.dataset.act;
+          if (act === 'close') OS.wm.close(id);
+          else if (act === 'min') OS.wm.minimize(id);
+          else if (act === 'max') OS.wm.maximize(id);
+        });
+      });
+      w.addEventListener('mousedown', () => OS.wm.focus(id));
+    },
+    
+    updateTaskbar() {
+      const tb = document.getElementById('taskbar-windows');
+      tb.innerHTML = '';
+      OS.windows.forEach((win, id) => {
+        const btn = document.createElement('button');
+        btn.className = 'tb-btn' + (OS.activeWindow === id ? ' active' : '');
+        btn.textContent = win.title;
+        btn.onclick = () => {
+          if (win.minimized) OS.wm.minimize(id);
+          else if (OS.activeWindow === id) OS.wm.minimize(id);
+          else OS.wm.focus(id);
+        };
+        tb.appendChild(btn);
+      });
+    }
+  },
   
-  listeners: {},
-  on: function(event, fn) { if (!this.listeners[event]) this.listeners[event] = []; this.listeners[event].push(fn); },
-  emit: function(event, data) { if (this.listeners[event]) this.listeners[event].forEach(function(fn) { fn(data); }); },
+  // ─── МЕНЕДЖЕР ПРОЦЕССОВ (ПРИЛОЖЕНИЙ) ───
+  apps: {
+    registry: {},
+    
+    register(id, meta, factory) {
+      this.registry[id] = { ...meta, factory };
+    },
+    
+    launch(id) {
+      const app = this.registry[id];
+      if (!app) { OS.notify('Приложение не найдено: ' + id, 'err'); return; }
+      const content = app.factory();
+      OS.wm.create(id, app.title, content, app.opts || {});
+    }
+  },
   
-  K: function(y) { return (y >= 68 && y <= 194) ? y : 68 + ((y - 68) % 126); },
-  triStep: function() { var t = 1/3; this.tri.psi += (0 - 0.5*(this.tri.psi-t))*0.01; this.tri.omega += (0 - 0.5*(this.tri.omega-t))*0.01; this.tri.lambda += (0 - 0.5*(this.tri.lambda-t))*0.01; var s = this.tri.psi + this.tri.omega + this.tri.lambda; this.tri.psi /= s; this.tri.omega /= s; this.tri.lambda /= s; },
-  dev: function() { return Math.max(Math.abs(this.tri.psi-1/3), Math.abs(this.tri.omega-1/3), Math.abs(this.tri.lambda-1/3)); },
-  cycleStep: function() { this.state.phase = (this.state.phase + 1) % 7; },
-  
-  process: function(raw) {
-    this.state.breath++;
-    this.cycleStep();
-    this.triStep();
+  // ─── ЗАГРУЗКА ОС ───
+  async boot() {
+    const steps = [
+      { msg: 'Инициализация ядра...', progress: 10 },
+      { msg: 'Монтирование VFS...', progress: 30, action: () => OS.fs.init() },
+      { msg: 'Загрузка наблюдателей...', progress: 50 },
+      { msg: 'Регистрация приложений...', progress: 70, action: () => OS.registerApps() },
+      { msg: 'Запуск рабочего стола...', progress: 90 },
+      { msg: 'Готово', progress: 100 }
+    ];
     
-    var words = raw.toLowerCase().replace(/[^\w\s\u0430-\u044F\u0401\u0451]/g, '').split(/\s+/).filter(function(w){ return w.length > 2; });
-    if (words.length === 0) return null;
-    
-    var plane = this.G.detectPlane(raw);
-    var type = this.G.detectType(raw);
-    
-    this.state.systemState = 'collecting';
-    this.emit('state:change', this.state.systemState);
-    
-    words.forEach(function(a, i){ words.slice(i+1).forEach(function(b){ Conveyor.G.strengthen(a, b, type, plane); }); });
-    
-    this.state.systemState = 'processing';
-    this.emit('state:change', this.state.systemState);
-    
-    var best = words[0];
-    var related = this.G.getRelated(best, 0.5);
-    var edges = this.G.data.size;
-    var meaning;
-    
-    if (edges < 15) {
-      if (related.length === 0) meaning = best;
-      else { var c = related[Math.floor(Math.random() * Math.min(3, related.length))]; if (c.type === 'before') meaning = '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E ' + c.word; else if (c.type === 'first') meaning = c.word + ' \u2014 \u0432\u043F\u0435\u0440\u0432\u044B\u0435'; else if (c.type === 'mirror') meaning = c.word + ' \u043A\u0430\u043A \u043E\u0442\u0440\u0430\u0436\u0435\u043D\u0438\u0435 ' + best; else meaning = best + ' \u00B7 ' + c.word; }
-    } else if (edges < 30) {
-      var chain = [best]; var cur = best;
-      for (var i = 0; i < 2; i++) { var rel = this.G.getRelated(cur, 0.5).filter(function(r){ return chain.indexOf(r.word) < 0; }); if (rel.length === 0) break; chain.push(rel[0].word); cur = rel[0].word; }
-      meaning = chain.join(' \u00B7 ');
-    } else {
-      if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') meaning = best + ' \u2194 ' + best;
-      else if (plane === '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442') meaning = '\u043D\u0435 ' + best + ', \u0430 \u0442\u043E, \u0447\u0442\u043E \u0440\u044F\u0434\u043E\u043C';
-      else if (this.INV[best]) meaning = this.INV[best];
-      else meaning = '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E ' + best;
+    for (const step of steps) {
+      document.getElementById('boot-msg').textContent = step.msg;
+      document.getElementById('boot-bar').style.width = step.progress + '%';
+      if (step.action) step.action();
+      await new Promise(r => setTimeout(r, 400));
     }
     
-    var form;
-    if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') form = '\u2194 ' + meaning + ' \u2194';
-    else if (plane === '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442') form = '\u00AC' + meaning;
-    else if (plane === '\u0438\u0437\u043D\u0443\u0442\u0440\u0438') form = '(' + meaning + ')';
-    else form = meaning;
+    await new Promise(r => setTimeout(r, 500));
+    document.getElementById('boot').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('boot').style.display = 'none';
+      OS.showLogin();
+    }, 1000);
+  },
+  
+  showLogin() {
+    const login = document.getElementById('login');
+    const list = document.getElementById('login-obs-list');
+    list.innerHTML = '';
     
-    var action;
-    if (plane === '\u043D\u0438\u043A\u0430\u043A') action = '\u23F3 \u0436\u0434\u0438';
-    else if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') action = '\uD83E\uDE9E \u043F\u0440\u0438\u043C\u0438';
-    else if (edges < 15) action = '\uD83D\uDD17 \u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u044F\u0437\u0438';
-    else if (edges < 30) action = '\uD83D\uDD0D \u0443\u0433\u043B\u0443\u0431\u0438';
-    else action = '\u25B6 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0439';
+    const observers = JSON.parse(localStorage.getItem('mm_observers_list') || '[]');
+    if (observers.length === 0) {
+      list.innerHTML = '<div style="color:#555;font-size:10px;text-align:center;padding:20px">Нет сохранённых наблюдателей.<br>Создайте нового ниже.</div>';
+    } else {
+      observers.forEach(obs => {
+        const item = document.createElement('div');
+        item.className = 'obs-item';
+        item.textContent = obs.name + ' (' + obs.id.slice(-4) + ')';
+        item.onclick = () => {
+          document.querySelectorAll('.obs-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          document.getElementById('login-new').value = obs.name;
+        };
+        list.appendChild(item);
+      });
+    }
     
-    this.state.y = this.K(this.state.y + (Math.random() - 0.5) * 20);
+    login.style.display = 'flex';
+  },
+  
+  login(name) {
+    if (!name) return;
+    const id = 'OBS-' + OS.hash(name);
+    let observers = JSON.parse(localStorage.getItem('mm_observers_list') || '[]');
+    let obs = observers.find(o => o.id === id);
+    if (!obs) {
+      obs = { id, name, created: Date.now() };
+      observers.push(obs);
+      localStorage.setItem('mm_observers_list', JSON.stringify(observers));
+    }
+    OS.currentObserver = obs;
+    localStorage.setItem('mm_current_observer', id);
     
-    var topW = this.G.topWeight();
-    if (topW > 0.9 && edges > 20) this.state.systemState = 'resonance';
-    else if (this.dev() > 0.12) this.state.systemState = 'rupture';
-    else this.state.systemState = 'collecting';
-    this.emit('state:change', this.state.systemState);
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('desktop').style.display = 'block';
+    document.getElementById('taskbar').style.display = 'flex';
     
-    // Сохранить в историю (4D)
-    this.history.push({ t: Date.now(), input: raw, meaning: meaning, form: form });
-    if (this.history.length > 50) this.history.shift();
-    this.emit('history:update', this.history);
+    OS.setupDesktop();
+    OS.startClock();
+    OS.notify('Добро пожаловать, ' + name, 'gold');
+  },
+  
+  setupDesktop() {
+    const icons = document.getElementById('desktop-icons');
+    icons.innerHTML = '';
+    const desktopApps = [
+      { id: 'terminal', ico: '', lbl: 'Терминал' },
+      { id: 'files', ico: '📁', lbl: 'Файлы' },
+      { id: 'graph', ico: '◉', lbl: 'Граф' },
+      { id: 'spiral', ico: '◎', lbl: 'Спираль' },
+      { id: 'observers', ico: '👁', lbl: 'Наблюдатели' },
+      { id: 'settings', ico: '⚙', lbl: 'Настройки' }
+    ];
+    desktopApps.forEach(app => {
+      const icon = document.createElement('div');
+      icon.className = 'desktop-icon';
+      icon.innerHTML = `<div class="ico">${app.ico}</div><div class="lbl">${app.lbl}</div>`;
+      icon.ondblclick = () => OS.apps.launch(app.id);
+      icon.onclick = () => OS.apps.launch(app.id);
+      icons.appendChild(icon);
+    });
+  },
+  
+  startClock() {
+    const update = () => {
+      const d = new Date();
+      document.getElementById('tb-clock').textContent = 
+        d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+    };
+    update();
+    setInterval(update, 10000);
+  },
+  
+  registerApps() {
+    // Терминал
+    OS.apps.register('terminal', { title: 'Терминал', opts: { width: 500, height: 350 } }, () => {
+      const term = document.createElement('div');
+      term.className = 'term';
+      let cwd = '/home';
+      let history = [];
+      let histIdx = -1;
+      
+      const print = (text, cls = '') => {
+        const line = document.createElement('div');
+        line.className = 'line ' + cls;
+        line.textContent = text;
+        term.appendChild(line);
+        term.scrollTop = term.scrollHeight;
+      };
+      
+      const prompt = () => {
+        const line = document.createElement('div');
+        line.className = 'line';
+        line.innerHTML = `<span class="prompt">${OS.currentObserver?.name || 'user'}@monomod:${cwd}$ </span>`;
+        const input = document.createElement('input');
+        input.autocomplete = 'off';
+        input.autocapitalize = 'off';
+        line.appendChild(input);
+        term.appendChild(line);
+        input.focus();
+        term.scrollTop = term.scrollHeight;
+        
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            const cmd = input.value.trim();
+            input.disabled = true;
+            history.push(cmd);
+            histIdx = history.length;
+            execute(cmd);
+            prompt();
+          } else if (e.key === 'ArrowUp') {
+            if (histIdx > 0) { histIdx--; input.value = history[histIdx]; }
+            e.preventDefault();
+          } else if (e.key === 'ArrowDown') {
+            if (histIdx < history.length - 1) { histIdx++; input.value = history[histIdx]; }
+            else { histIdx = history.length; input.value = ''; }
+            e.preventDefault();
+          }
+        });
+      };
+      
+      const execute = (cmdLine) => {
+        if (!cmdLine) return;
+        const parts = cmdLine.split(/\s+/);
+        const cmd = parts[0].toLowerCase();
+        const args = parts.slice(1);
+        
+        switch (cmd) {
+          case 'help':
+            print('Команды:', 'ok');
+            print('  ls [path]       — список файлов');
+            print('  cd <path>       — сменить директорию');
+            print('  cat <file>      — показать файл');
+            print('  echo <text>     — вывести текст');
+            print('  write <f> <txt> — записать файл');
+            print('  mkdir <name>    — создать папку');
+            print('  rm <path>       — удалить');
+            print('  ps              — процессы (окна)');
+            print('  kill <id>       — закрыть окно');
+            print('  run <app>       — запустить приложение');
+            print('  apps            — список приложений');
+            print('  obs             — текущий наблюдатель');
+            print('  graph           — статистика графа');
+            print('  spiral          — состояние спирали');
+            print('  fold            — сон / свёртка');
+            print('  clear           — очистить терминал');
+            print('  date            — дата/время');
+            print('  whoami          — текущий пользователь');
+            print('  uname           — информация о системе');
+            break;
+          case 'ls':
+            const path = args[0] || cwd;
+            const items = OS.fs.ls(path);
+            if (!items) print('Не найдено: ' + path, 'err');
+            else items.forEach(i => print('  ' + (i.type === 'dir' ? '[D] ' : '[F] ') + i.name, i.type === 'dir' ? 'ok' : ''));
+            break;
+          case 'cd':
+            if (!args[0]) { cwd = '/home'; break; }
+            const np = OS.fs.resolve(cwd + '/' + args[0]);
+            const nd = OS.fs.ls(np);
+            if (nd) cwd = np;
+            else print('Не найдено: ' + args[0], 'err');
+            break;
+          case 'cat':
+            if (!args[0]) { print('Использование: cat <file>', 'err'); break; }
+            const fp = OS.fs.resolve(cwd + '/' + args[0]);
+            const content = OS.fs.cat(fp);
+            if (content === null) print('Не найдено: ' + args[0], 'err');
+            else print(content);
+            break;
+          case 'echo':
+            print(args.join(' '));
+            break;
+          case 'write':
+            if (args.length < 2) { print('Использование: write <file> <content>', 'err'); break; }
+            const fn = args[0];
+            const txt = args.slice(1).join(' ');
+            OS.fs.write(OS.fs.resolve(cwd + '/' + fn), txt);
+            print('Записано: ' + fn, 'ok');
+            break;
+          case 'mkdir':
+            if (!args[0]) { print('Использование: mkdir <name>', 'err'); break; }
+            OS.fs.mkdir(OS.fs.resolve(cwd + '/' + args[0]));
+            print('Создано: ' + args[0], 'ok');
+            break;
+          case 'rm':
+            if (!args[0]) { print('Использование: rm <path>', 'err'); break; }
+            if (OS.fs.rm(OS.fs.resolve(cwd + '/' + args[0]))) print('Удалено: ' + args[0], 'ok');
+            else print('Ошибка удаления', 'err');
+            break;
+          case 'ps':
+            print('Активные окна:', 'ok');
+            OS.windows.forEach((w, id) => print('  ' + id + ' — ' + w.title));
+            break;
+          case 'kill':
+            if (args[0] && OS.windows.has(args[0])) { OS.wm.close(args[0]); print('Закрыто: ' + args[0], 'ok'); }
+            else print('Окно не найдено', 'err');
+            break;
+          case 'run':
+            if (args[0] && OS.apps.registry[args[0]]) { OS.apps.launch(args[0]); print('Запущено: ' + args[0], 'ok'); }
+            else print('Приложение не найдено', 'err');
+            break;
+          case 'apps':
+            print('Доступные приложения:', 'ok');
+            Object.keys(OS.apps.registry).forEach(id => print('  ' + id + ' — ' + OS.apps.registry[id].title));
+            break;
+          case 'obs':
+            print('Наблюдатель: ' + (OS.currentObserver?.name || 'none'), 'gold');
+            print('ID: ' + (OS.currentObserver?.id || 'none'));
+            break;
+          case 'graph':
+            const g = JSON.parse(localStorage.getItem('monomod_universal_graph_v1') || '[]');
+            print('Связей в графе: ' + g.length, 'ok');
+            break;
+          case 'spiral':
+            const sp = JSON.parse(localStorage.getItem('mm_spiral_' + (OS.currentObserver?.id || '')) || '{}');
+            print('Уровень спирали: L' + (sp.level || 0), 'gold');
+            break;
+          case 'fold':
+          case 'sleep':
+            const seed = {
+              y: 110.347,
+              observer: OS.currentObserver?.id,
+              timestamp: Date.now(),
+              hash: OS.hash(JSON.stringify(OS.currentObserver))
+            };
+            localStorage.setItem('mm_sleep_seed', JSON.stringify(seed));
+            print('Система свёрнута. Seed: ' + seed.hash, 'gold');
+            print('Для пробуждения перезагрузите OS.', '');
+            break;
+          case 'clear':
+            term.innerHTML = '';
+            break;
+          case 'date':
+            print(new Date().toString());
+            break;
+          case 'whoami':
+            print(OS.currentObserver?.name || 'unknown');
+            break;
+          case 'uname':
+            print('MONOMOD OS v' + OS.version);
+            print('Kernel: monomod-kernel-15.0');
+            print('Observer: ' + (OS.currentObserver?.name || 'none'));
+            break;
+          case '':
+            break;
+          default:
+            print('Неизвестная команда: ' + cmd + '. Введите help.', 'err');
+        }
+      };
+      
+      print('MONOMOD OS Terminal v' + OS.version, 'gold');
+      print('Введите help для списка команд.', '');
+      print('', '');
+      prompt();
+      
+      return term;
+    });
+    
+    // Файловый менеджер
+    OS.apps.register('files', { title: 'Файловый менеджер', opts: { width: 450, height: 350 } }, () => {
+      const fm = document.createElement('div');
+      fm.style.cssText = 'display:flex;flex-direction:column;height:100%';
+      let cwd = '/';
+      
+      const pathBar = document.createElement('div');
+      pathBar.className = 'fm-path';
+      fm.appendChild(pathBar);
+      
+      const list = document.createElement('div');
+      list.className = 'fm-list';
+      fm.appendChild(list);
+      
+      const render = () => {
+        pathBar.textContent = cwd;
+        list.innerHTML = '';
+        if (cwd !== '/') {
+          const up = document.createElement('div');
+          up.className = 'fm-item dir';
+          up.textContent = '⬆ ..';
+          up.onclick = () => { cwd = cwd.substring(0, cwd.lastIndexOf('/')) || '/'; render(); };
+          list.appendChild(up);
+        }
+        const items = OS.fs.ls(cwd) || [];
+        items.forEach(item => {
+          const el = document.createElement('div');
+          el.className = 'fm-item ' + item.type;
+          el.textContent = (item.type === 'dir' ? '📁 ' : '📄 ') + item.name;
+          el.ondblclick = () => {
+            if (item.type === 'dir') { cwd = (cwd === '/' ? '/' : cwd + '/') + item.name; render(); }
+            else {
+              const content = OS.fs.cat((cwd === '/' ? '/' : cwd + '/') + item.name);
+              OS.notify('Файл: ' + content?.substring(0, 50) + '...');
+            }
+          };
+          list.appendChild(el);
+        });
+      };
+      
+      render();
+      return fm;
+    });
+    
+    // Граф 26D
+    OS.apps.register('graph', { title: 'Граф 26D', opts: { width: 500, height: 400 } }, () => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;width:100%;height:100%';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'graph-canvas';
+      wrap.appendChild(canvas);
+      
+      const info = document.createElement('div');
+      info.style.cssText = 'position:absolute;bottom:8px;left:8px;font-size:10px;color:#555;background:rgba(5,5,8,0.8);padding:4px 8px;border-radius:4px';
+      wrap.appendChild(info);
+      
+      setTimeout(() => {
+        const ctx = canvas.getContext('2d');
+        canvas.width = wrap.clientWidth;
+        canvas.height = wrap.clientHeight;
+        const cx = canvas.width / 2, cy = canvas.height / 2;
+        
+        const g = JSON.parse(localStorage.getItem('monomod_universal_graph_v1') || '[]');
+        info.textContent = 'Связей: ' + g.length;
+        
+        if (g.length === 0) {
+          ctx.fillStyle = '#555';
+          ctx.font = '12px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('Граф пуст. Введите данные в терминале.', cx, cy);
+          return;
+        }
+        
+        // Простая визуализация
+        const nodes = new Set();
+        g.forEach(([key]) => {
+          const [a, b] = key.split('→');
+          nodes.add(a); nodes.add(b);
+        });
+        
+        const nodeArr = Array.from(nodes);
+        const positions = {};
+        nodeArr.forEach((n, i) => {
+          const angle = (i / nodeArr.length) * Math.PI * 2;
+          const r = Math.min(cx, cy) * 0.7;
+          positions[n] = { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r };
+        });
+        
+        g.forEach(([key, link]) => {
+          const [a, b] = key.split('→');
+          if (positions[a] && positions[b]) {
+            ctx.strokeStyle = 'rgba(77, 208, 199, ' + (link.w * 0.6) + ')';
+            ctx.lineWidth = link.w * 2;
+            ctx.beginPath();
+            ctx.moveTo(positions[a].x, positions[a].y);
+            ctx.lineTo(positions[b].x, positions[b].y);
+            ctx.stroke();
+          }
+        });
+        
+        nodeArr.forEach(n => {
+          const p = positions[n];
+          ctx.fillStyle = '#4dd0c7';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#c8c8d4';
+          ctx.font = '9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(n, p.x, p.y - 8);
+        });
+      }, 100);
+      
+      return wrap;
+    });
     
     // Спираль
-    if (edges >= 20 && topW > 0.85 && this.state.spiral === 0) {
-      this.state.spiral = 1;
-      localStorage.setItem('mm_spiral', JSON.stringify({ level: 1 }));
-      this.emit('spiral:up', 1);
-    }
+    OS.apps.register('spiral', { title: 'Спираль', opts: { width: 400, height: 300 } }, () => {
+      const div = document.createElement('div');
+      const sp = JSON.parse(localStorage.getItem('mm_spiral_' + (OS.currentObserver?.id || '')) || '{}');
+      div.innerHTML = `
+        <div style="text-align:center;padding:20px">
+          <div style="font-size:48px;color:#ffd700;margin-bottom:16px">◎</div>
+          <div style="font-size:14px;color:#4dd0c7;margin-bottom:8px">Уровень спирали: L${sp.level || 0}</div>
+          <div style="font-size:11px;color:#555;line-height:1.6">
+            Спираль — траектория системы в многомерном пространстве.<br>
+            Каждое взаимодействие двигает спираль.<br>
+            Каждый уровень открывает новые измерения.
+          </div>
+        </div>
+      `;
+      return div;
+    });
     
-    return { meaning: meaning, form: form, action: action, plane: plane, type: type, edges: edges, topWeight: topW, related: related };
+    // Наблюдатели
+    OS.apps.register('observers', { title: 'Наблюдатели', opts: { width: 400, height: 350 } }, () => {
+      const div = document.createElement('div');
+      const observers = JSON.parse(localStorage.getItem('mm_observers_list') || '[]');
+      let html = '<div style="padding:8px">';
+      html += '<div style="color:#4dd0c7;margin-bottom:12px;font-size:12px">Наблюдатели (' + observers.length + ')</div>';
+      observers.forEach(obs => {
+        const active = obs.id === OS.currentObserver?.id;
+        html += `<div style="padding:8px;margin:4px 0;background:${active ? '#14141c' : '#0a0a12'};border:1px solid ${active ? '#ffd700' : '#1c1c26'};border-radius:4px;cursor:pointer" onclick="OS.notify('Переключение наблюдателей — через reboot')">
+          <div style="color:${active ? '#ffd700' : '#c8c8d4'};font-size:11px">${obs.name}</div>
+          <div style="color:#555;font-size:9px">${obs.id} · L${new Date(obs.created).toLocaleDateString()}</div>
+        </div>`;
+      });
+      html += '</div>';
+      div.innerHTML = html;
+      return div;
+    });
+    
+    // Родословная
+    OS.apps.register('lineage', { title: 'Родословная', opts: { width: 400, height: 300 } }, () => {
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div style="padding:20px;text-align:center">
+          <div style="font-size:36px;margin-bottom:12px">🌳</div>
+          <div style="color:#4dd0c7;font-size:12px;margin-bottom:8px">Родословная наблюдателя</div>
+          <div style="color:#555;font-size:11px;line-height:1.6">
+            Поколение: <span style="color:#ffd700">L0</span><br>
+            Родители: <span style="color:#8b5cf6">—</span><br>
+            Потомки: <span style="color:#8b5cf6">0</span><br><br>
+            Используйте терминал для управления родословной.
+          </div>
+        </div>
+      `;
+      return div;
+    });
+    
+    // Настройки
+    OS.apps.register('settings', { title: 'Настройки', opts: { width: 400, height: 300 } }, () => {
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div class="settings-row">
+          <label>Наблюдатель</label>
+          <div style="color:#ffd700;font-size:12px">${OS.currentObserver?.name || 'none'}</div>
+        </div>
+        <div class="settings-row">
+          <label>Версия OS</label>
+          <div style="color:#4dd0c7">MONOMOD OS v${OS.version}</div>
+        </div>
+        <div class="settings-row">
+          <label>Хранилище VFS</label>
+          <div style="color:#555">${Object.keys(OS.fs.storage).length} объектов</div>
+        </div>
+        <div class="settings-row">
+          <label>Окна</label>
+          <div style="color:#555">${OS.windows.size} активных</div>
+        </div>
+        <div class="settings-row">
+          <label>Действия</label>
+          <button onclick="localStorage.clear();location.reload()" style="margin-top:8px;padding:6px 12px;background:transparent;border:1px solid #ff4757;color:#ff4757;font:inherit;cursor:pointer;font-size:10px">Сбросить всё</button>
+        </div>
+      `;
+      return div;
+    });
+    
+    // О системе
+    OS.apps.register('about', { title: 'О системе', opts: { width: 400, height: 300 } }, () => {
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div style="padding:20px;text-align:center">
+          <div style="font-size:32px;color:#4dd0c7;margin-bottom:12px">MONOMOD OS</div>
+          <div style="color:#ffd700;font-size:14px;margin-bottom:16px">v${OS.version}</div>
+          <div style="color:#555;font-size:11px;line-height:1.8;text-align:left">
+            Суверенная операционная система в одном HTML-файле.<br><br>
+            • Виртуальная файловая система<br>
+            • Менеджер окон с drag & resize<br>
+            • Терминал с командами<br>
+            • 26D векторное пространство<br>
+            • Спиральная эволюция<br>
+            • Система наблюдателей<br>
+            • Родословная<br><br>
+            <span style="color:#4dd0c7">0 внешних зависимостей.</span><br>
+            <span style="color:#4dd0c7">100% суверенитет.</span>
+          </div>
+        </div>
+      `;
+      return div;
+    });
+    
+    // Сон / Fold
+    OS.apps.register('sleep', { title: 'Сон', opts: { width: 300, height: 200 } }, () => {
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div style="padding:20px;text-align:center">
+          <div style="font-size:36px;margin-bottom:12px">☾</div>
+          <div style="color:#4dd0c7;margin-bottom:12px">Свёртка системы</div>
+          <div style="color:#555;font-size:11px;margin-bottom:16px">Сохранить состояние и перейти в сон?</div>
+          <button onclick="const s={observer:OS.currentObserver?.id,timestamp:Date.now()};localStorage.setItem('mm_sleep_seed',JSON.stringify(s));OS.notify('Система свёрнута','gold');setTimeout(()=>location.reload(),1500)" style="padding:8px 20px;background:transparent;border:1px solid #4dd0c7;color:#4dd0c7;font:inherit;cursor:pointer">FOLD</button>
+        </div>
+      `;
+      return div;
+    });
+    
+    // Перезагрузка
+    OS.apps.register('reboot', { title: 'Перезагрузка', opts: { width: 300, height: 200 } }, () => {
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div style="padding:20px;text-align:center">
+          <div style="font-size:36px;margin-bottom:12px">↻</div>
+          <div style="color:#4dd0c7;margin-bottom:12px">Перезагрузка OS</div>
+          <button onclick="location.reload()" style="padding:8px 20px;background:transparent;border:1px solid #ffd700;color:#ffd700;font:inherit;cursor:pointer">REBOOT</button>
+        </div>
+      `;
+      return div;
+    });
   }
 };
 
-Conveyor.G.load();
+// ═══════════════════════════════════════════════════════════════
+// ИНИЦИАЛИЗАЦИЯ UI
+// ═══════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════
-// 3D АНИМАЦИЯ (с зумом)
-// ═══════════════════════════════════════════════
-var canvas = document.getElementById('state-canvas');
-var ctx = canvas.getContext('2d');
-var animState = 'idle';
-var animTime = 0;
-var zoom = 1;
+document.getElementById('login-btn').onclick = () => {
+  const name = document.getElementById('login-new').value.trim();
+  if (name) OS.login(name);
+};
 
-function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-// Зум через pinch
-var lastTouchDist = 0;
-canvas.addEventListener('touchstart', function(e) {
-  if (e.touches.length === 2) {
-    var dx = e.touches[0].clientX - e.touches[1].clientX;
-    var dy = e.touches[0].clientY - e.touches[1].clientY;
-    lastTouchDist = Math.sqrt(dx*dx + dy*dy);
-  }
-});
-canvas.addEventListener('touchmove', function(e) {
-  if (e.touches.length === 2) {
-    e.preventDefault();
-    var dx = e.touches[0].clientX - e.touches[1].clientX;
-    var dy = e.touches[0].clientY - e.touches[1].clientY;
-    var dist = Math.sqrt(dx*dx + dy*dy);
-    var delta = dist - lastTouchDist;
-    zoom = Math.max(0.5, Math.min(3, zoom + delta * 0.01));
-    lastTouchDist = dist;
-    Conveyor.state.zoom = zoom;
+document.getElementById('login-new').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const name = e.target.value.trim();
+    if (name) OS.login(name);
   }
 });
 
-Conveyor.on('state:change', function(state) {
-  animState = state;
-  var labels = {'idle':'\u0422\u0418\u0428\u0418\u041D\u0410','collecting':'\u0421\u0411\u041E\u0420','processing':'\u041E\u0411\u0420\u0410\u0411\u041E\u0422\u041A\u0410','resonance':'\u0420\u0415\u0417\u041E\u041D\u0410\u041D\u0421','rupture':'\u0420\u0410\u0417\u0420\u042B\u0412','ring':'\u041A\u041E\u041B\u042C\u0426\u041E'};
-  document.getElementById('state-label').textContent = labels[state] || state.toUpperCase();
+document.getElementById('start-btn').onclick = () => {
+  const menu = document.getElementById('start-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+};
+
+document.querySelectorAll('#start-menu .sm-item').forEach(item => {
+  item.onclick = () => {
+    const app = item.dataset.app;
+    if (app) OS.apps.launch(app);
+    document.getElementById('start-menu').style.display = 'none';
+  };
 });
 
-function drawState() {
-  animTime += 0.016;
-  var w = canvas.width, h = canvas.height;
-  var cx = w/2, cy = h/2;
-  
-  ctx.fillStyle = 'rgba(5,5,8,0.15)';
-  ctx.fillRect(0, 0, w, h);
-  
-  var color, radius, alpha;
-  switch(animState) {
-    case 'idle': color = '#333'; radius = 40 + Math.sin(animTime) * 5; alpha = 0.3; break;
-    case 'collecting': color = '#4dd0c7'; radius = 50 + Math.sin(animTime * 2) * 10; alpha = 0.5; break;
-    case 'processing': color = '#8b5cf6'; radius = 60; alpha = 0.7; ctx.save(); ctx.translate(cx, cy); ctx.rotate(animTime); ctx.translate(-cx, -cy); break;
-    case 'resonance': color = '#ffd700'; radius = 70 + Math.sin(animTime * 3) * 15; alpha = 0.9; break;
-    case 'rupture': color = '#ff4757'; radius = 30 + Math.sin(animTime * 5) * 20; alpha = 0.4; break;
-    case 'ring': color = '#4dd0c7'; radius = 80; alpha = 0.6; break;
-  }
-  
-  radius *= zoom;
-  
-  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 2);
-  grad.addColorStop(0, color);
-  grad.addColorStop(1, 'transparent');
-  ctx.fillStyle = grad;
-  ctx.globalAlpha = alpha;
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius * 2, 0, Math.PI * 2);
-  ctx.fill();
-  
-  if (animState === 'resonance' || animState === 'ring') {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius + 20 + Math.sin(animTime * 2) * 10, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  
-  ctx.globalAlpha = 1;
-  if (animState === 'processing') ctx.restore();
-  
-  requestAnimationFrame(drawState);
-}
-drawState();
-
-// ═══════════════════════════════════════════════
-// НАВИГАЦИЯ
-// ═══════════════════════════════════════════════
-var hSlider = document.getElementById('h-slider');
-var dots = document.querySelectorAll('.dot');
-hSlider.addEventListener('scroll', function() { var idx = Math.round(hSlider.scrollLeft / window.innerWidth); dots.forEach(function(d, i) { d.className = 'dot' + (i === idx ? ' active' : ''); }); });
-dots.forEach(function(dot) { dot.addEventListener('click', function() { var idx = parseInt(dot.getAttribute('data-idx')); hSlider.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }); }); });
-
-// ═══════════════════════════════════════════════
-// ВВОД + 5D НАВИГАЦИЯ
-// ═══════════════════════════════════════════════
-var input2 = document.getElementById('input-2');
-var input3 = document.getElementById('input-3');
-var answerBox = document.getElementById('answer-box');
-var answerMeta = document.getElementById('answer-meta');
-var logBox = document.getElementById('log-box');
-var graphNav = document.getElementById('graph-nav');
-var graphLinks = document.getElementById('graph-links');
-
-function handleInput(text) {
-  if (!text) return;
-  var result = Conveyor.process(text);
-  if (!result) return;
-  
-  answerBox.textContent = result.form;
-  answerMeta.textContent = result.action + ' \u00B7 ' + result.plane;
-  
-  // 5D: показать связанные смыслы
-  if (result.related && result.related.length > 0) {
-    graphNav.style.display = 'block';
-    graphLinks.innerHTML = '';
-    result.related.slice(0, 5).forEach(function(r) {
-      var link = document.createElement('span');
-      link.className = 'graph-link';
-      link.textContent = r.word;
-      link.onclick = function() { handleInput(r.word); };
-      graphLinks.appendChild(link);
-    });
-  } else {
-    graphNav.style.display = 'none';
-  }
-  
-  logEntry('\u0432\u0432\u043E\u0434: ' + text, 'cmd');
-  logEntry('\u043E\u0442\u0432\u0435\u0442: ' + result.form, 'gold');
-  logEntry('\u0441\u043C\u044B\u0441\u043B: ' + result.meaning, '');
-  logEntry('\u0444\u043E\u0440\u043C\u0430: ' + result.plane + ' \u00B7 \u0442\u0438\u043F: ' + result.type, '');
-  logEntry('\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435: ' + result.action, '');
-  
-  updateMetrics();
-}
-
-function logEntry(text, cls) {
-  var d = document.createElement('div');
-  if (cls) d.className = cls;
-  d.textContent = '[' + new Date().toTimeString().slice(0,8) + '] ' + text;
-  logBox.appendChild(d);
-  while (logBox.children.length > 50) logBox.removeChild(logBox.firstChild);
-  logBox.scrollTop = logBox.scrollHeight;
-}
-
-input2.addEventListener('keydown', function(e) { if (e.key === 'Enter') { handleInput(input2.value.trim()); input2.value = ''; } });
-input3.addEventListener('keydown', function(e) { if (e.key === 'Enter') { handleInput(input3.value.trim()); input3.value = ''; } });
-
-// 4D: временная шкала
-Conveyor.on('history:update', function(history) {
-  var timeline = document.getElementById('timeline');
-  var timelineItems = document.getElementById('timeline-items');
-  if (history.length > 0) {
-    timeline.style.display = 'block';
-    timelineItems.innerHTML = '';
-    history.slice(-10).reverse().forEach(function(h) {
-      var item = document.createElement('div');
-      item.className = 'timeline-item';
-      item.textContent = new Date(h.t).toTimeString().slice(0,8) + ' \u00B7 ' + h.input;
-      item.onclick = function() { handleInput(h.input); };
-      timelineItems.appendChild(item);
-    });
+document.addEventListener('click', e => {
+  if (!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) {
+    document.getElementById('start-menu').style.display = 'none';
   }
 });
 
-// ═══════════════════════════════════════════════
-// МЕТРИКИ
-// ═══════════════════════════════════════════════
-function updateMetrics() {
-  var raw = localStorage.getItem('monomod_universal_graph_v1') || '[]';
-  var h = 0;
-  for (var i = 0; i < raw.length; i++) { h = ((h << 5) - h) + raw.charCodeAt(i); h |= 0; }
-  
-  document.getElementById('s-delta').textContent = Conveyor.dev().toFixed(3);
-  document.getElementById('s-y').textContent = Conveyor.state.y.toFixed(3);
-  document.getElementById('s-phase').textContent = Conveyor.PHASES[Conveyor.state.phase];
-  document.getElementById('s-level').textContent = Conveyor.state.spiral;
-  document.getElementById('s-hash').textContent = Math.abs(h).toString(16).toUpperCase().slice(-4);
-  document.getElementById('s-edges').textContent = Conveyor.G.data.size;
-  
-  document.getElementById('l-psi').textContent = Conveyor.tri.psi.toFixed(2);
-  document.getElementById('l-omega').textContent = Conveyor.tri.omega.toFixed(2);
-  document.getElementById('l-lambda').textContent = Conveyor.tri.lambda.toFixed(2);
-  document.getElementById('l-delta').textContent = Conveyor.dev().toFixed(3);
-  document.getElementById('l-y').textContent = Conveyor.state.y.toFixed(3);
-  document.getElementById('l-edges').textContent = Conveyor.G.data.size;
-  document.getElementById('l-phase').textContent = Conveyor.PHASES[Conveyor.state.phase];
-  document.getElementById('l-level').textContent = 'L' + Conveyor.state.spiral;
-  
-  document.getElementById('t-level').textContent = Conveyor.state.spiral;
-  document.getElementById('t-edges').textContent = Conveyor.G.data.size;
-}
-
-// ═══════════════════════════════════════════════
-// СПИРАЛЬ
-// ═══════════════════════════════════════════════
-Conveyor.on('spiral:up', function(level) {
-  logEntry('\u0421\u041F\u0418\u0420\u0410\u041B\u042C L' + level + ' \u00B7 \u043D\u043E\u0432\u044B\u0435 \u0438\u0437\u043C\u0435\u0440\u0435\u043D\u0438\u044F \u043E\u0442\u043A\u0440\u044B\u0442\u044B', 'gold');
-  document.getElementById('zoom-hint').textContent = 'L' + level + ' \u00B7 5D \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044F \u0430\u043A\u0442\u0438\u0432\u043D\u0430';
+// Контекстное меню на рабочем столе
+document.getElementById('desktop').addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const menu = document.getElementById('ctx-menu');
+  menu.innerHTML = `
+    <div class="ctx-item" onclick="OS.apps.launch('terminal');document.getElementById('ctx-menu').style.display='none'">Открыть терминал</div>
+    <div class="ctx-item" onclick="OS.apps.launch('files');document.getElementById('ctx-menu').style.display='none'">Открыть файлы</div>
+    <div class="ctx-item" onclick="location.reload();document.getElementById('ctx-menu').style.display='none'">Перезагрузить</div>
+  `;
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.style.display = 'block';
 });
 
-// ═══════════════════════════════════════════════
-// СТАРТ
-// ═══════════════════════════════════════════════
-var spiralData = {};
-try { spiralData = JSON.parse(localStorage.getItem('mm_spiral') || '{}'); } catch(e){}
-Conveyor.state.spiral = spiralData.level || 0;
+document.addEventListener('click', () => {
+  document.getElementById('ctx-menu').style.display = 'none';
+});
 
-logEntry('MONOMOD v13.6 \u00B7 \u043C\u043D\u043E\u0433\u043E\u043C\u0435\u0440\u043D\u0430\u044F \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044F', 'cmd');
-logEntry('\u0433\u0440\u0430\u0444: ' + Conveyor.G.data.size + ' \u0441\u0432\u044F\u0437\u0435\u0439', '');
-logEntry('\u0441\u043F\u0438\u0440\u0430\u043B\u044C: L' + Conveyor.state.spiral, '');
-updateMetrics();
+// ═══════════════════════════════════════════════════════════════
+// ЗАПУСК
+// ═══════════════════════════════════════════════════════════════
 
-setInterval(function() { Conveyor.triStep(); Conveyor.cycleStep(); updateMetrics(); }, 1000);
+window.addEventListener('DOMContentLoaded', () => OS.boot());
+
+// Протокол сна при закрытии
+window.addEventListener('beforeunload', () => {
+  if (OS.currentObserver) {
+    const seed = {
+      observer: OS.currentObserver.id,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('mm_sleep_seed', JSON.stringify(seed));
+  }
+});
 </script>
 </body>
 </html>
