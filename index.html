@@ -2,321 +2,631 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#050508">
 <title>MONOMOD</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#050508;color:#c8c8d4;font-family:'Courier New',monospace;overflow:hidden;-webkit-tap-highlight-color:transparent}
-#slider{display:flex;height:calc(100vh - 60px);overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-#slider::-webkit-scrollbar{display:none}
-.page{flex:0 0 100vw;height:100%;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid #1c1c26;padding:20px;position:relative}
-.page-label{position:absolute;top:20px;left:20px;font-size:10px;color:#555;letter-spacing:2px}
-.page-label b{color:#4dd0c7}
-.page-title{font-size:22px;letter-spacing:3px;margin-bottom:16px;color:#ffd700;text-align:center}
-.page-desc{font-size:11px;color:#555;margin-bottom:24px;max-width:320px;text-align:center;line-height:1.5}
-.launch-btn{padding:14px 36px;background:transparent;border:1px solid #4dd0c7;color:#4dd0c7;font:inherit;font-size:11px;cursor:pointer;letter-spacing:2px}
-.launch-btn:active{background:rgba(77,208,199,0.15)}
-#nav{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10}
-.dot{width:6px;height:6px;border-radius:50%;background:#333;cursor:pointer}
-.dot.active{background:#4dd0c7;width:20px;border-radius:3px}
-#terminal{position:fixed;top:10px;right:10px;width:200px;max-height:30vh;background:#0a0a12;border:1px solid #1c1c26;padding:8px;font-size:9px;overflow-y:auto;z-index:10;opacity:0.7}
-#terminal .line{margin-bottom:2px;color:#555;word-break:break-all}
-#terminal .line.gold{color:#ffd700}
-#terminal .line.cmd{color:#4dd0c7}
-#status{position:fixed;bottom:8px;right:10px;font-size:9px;color:#555;z-index:10}
-#status b{color:#ffd700}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { 
+  height: 100%; 
+  background: #050508; 
+  color: #c8c8d4; 
+  font-family: 'Courier New', monospace; 
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+#app {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* СФЕРА */
+#sphere-wrap {
+  flex: 0 0 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+#sphere {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #4dd0c7 0%, transparent 70%);
+  opacity: 0.6;
+  animation: breathe 6s infinite ease-in-out;
+  transition: all 1s;
+}
+
+#sphere.golden {
+  background: radial-gradient(circle, #ffd700 0%, transparent 70%);
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+}
+
+#sphere.silence {
+  background: radial-gradient(circle, #333 0%, transparent 70%);
+  opacity: 0.3;
+  animation: none;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); filter: blur(2px); }
+}
+
+#sphere-label {
+  position: absolute;
+  bottom: 10px;
+  font-size: 9px;
+  color: #555;
+  text-align: center;
+  width: 100%;
+}
+
+/* СЛАЙДЕР */
+#slider-wrap {
+  flex: 0 0 30%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-top: 1px solid #1c1c26;
+  border-bottom: 1px solid #1c1c26;
+}
+
+#slider-wrap::-webkit-scrollbar { display: none; }
+
+#slider {
+  display: flex;
+  height: 100%;
+  padding: 10px;
+  gap: 10px;
+}
+
+.word-card {
+  flex: 0 0 auto;
+  min-width: 80px;
+  height: 100%;
+  background: #0a0a12;
+  border: 1px solid #1c1c26;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #4dd0c7;
+  padding: 8px;
+  text-align: center;
+  word-break: break-word;
+}
+
+.word-card.active {
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+/* ВВОД */
+#input-wrap {
+  flex: 0 0 auto;
+  padding: 12px;
+  background: #08080c;
+}
+
+#input {
+  width: 100%;
+  padding: 12px;
+  background: #0a0a12;
+  border: 1px solid #1c1c26;
+  color: #c8c8d4;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  border-radius: 4px;
+}
+
+#input:focus { border-color: #4dd0c7; }
+
+/* ПАНЕЛЬ MONOMODE (скрыта по умолчанию) */
+#monomode-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #050508;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+#monomode-panel.visible { display: flex; }
+
+#monomode-header {
+  font-size: 12px;
+  color: #4dd0c7;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#close-monomode {
+  background: transparent;
+  border: 1px solid #ff4757;
+  color: #ff4757;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.triad {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.triad > div {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #1c1c26;
+  text-align: center;
+  font-size: 10px;
+}
+
+.triad .v {
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.triad .p { color: #e8c39e; }
+.triad .o { color: #7aa2ff; }
+.triad .l { color: #ffa840; }
+
+#monomode-log {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #555;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+#monomode-log div {
+  padding: 2px 0;
+  border-bottom: 1px dotted #14141c;
+}
+
+#monomode-log .gold { color: #ffd700; }
+#monomode-log .cmd { color: #4dd0c7; }
+
+/* СТАТУС */
+#status {
+  position: fixed;
+  bottom: 8px;
+  right: 10px;
+  font-size: 9px;
+  color: #555;
+  z-index: 10;
+}
+
+#status b { color: #ffd700; }
 </style>
 </head>
 <body>
 
-<div id="slider"></div>
-<div id="nav"></div>
-<div id="terminal"></div>
-<div id="status">хэш: <b id="hash">—</b> · L<b id="level">0</b> · <b id="edges">0</b></div>
+<div id="app">
+  <!-- СФЕРА -->
+  <div id="sphere-wrap">
+    <div id="sphere"></div>
+    <div id="sphere-label">L<span id="level">0</span> · <span id="edges">0</span> связей</div>
+  </div>
+
+  <!-- СЛАЙДЕР -->
+  <div id="slider-wrap">
+    <div id="slider"></div>
+  </div>
+
+  <!-- ВВОД -->
+  <div id="input-wrap">
+    <input id="input" placeholder="введите слово..." autocomplete="off">
+  </div>
+</div>
+
+<!-- ПАНЕЛЬ MONOMODE -->
+<div id="monomode-panel">
+  <div id="monomode-header">
+    <span>MONOMODE · МОЗГ</span>
+    <button id="close-monomode">ЗАКРЫТЬ</button>
+  </div>
+  <div class="triad">
+    <div class="p">Ψ<span class="v" id="v-psi">.36</span></div>
+    <div class="o">Ω<span class="v" id="v-omega">.33</span></div>
+    <div class="l">Λ<span class="v" id="v-lambda">.31</span></div>
+  </div>
+  <div style="font-size:10px;color:#555;margin-bottom:12px">
+    δ: <b id="delta" style="color:#ffd700">0.000</b> · 
+    y: <b id="y" style="color:#ffd700">110.347</b> · 
+    фаза: <b id="phase" style="color:#ffd700">collect</b>
+  </div>
+  <div id="monomode-log"></div>
+</div>
+
+<div id="status">хэш: <b id="hash">—</b></div>
 
 <script>
 // ═══════════════════════════════════════════════
-// УТИЛИТЫ
+// ЯДРО · ИНВАРИАНТЫ
 // ═══════════════════════════════════════════════
-function log(text, cls) {
-  var t = document.getElementById('terminal');
-  var d = document.createElement('div');
-  d.className = 'line' + (cls ? ' ' + cls : '');
-  d.textContent = text;
-  t.appendChild(d);
-  while (t.children.length > 40) t.removeChild(t.firstChild);
-  t.scrollTop = t.scrollHeight;
-}
-
-function getRegistry() {
-  try { return JSON.parse(localStorage.getItem('monomod_registry') || '[]'); }
-  catch(e) { return []; }
-}
-
-function saveRegistry(r) {
-  localStorage.setItem('monomod_registry', JSON.stringify(r));
-}
-
-function getGraph() {
-  try { return JSON.parse(localStorage.getItem('monomod_universal_graph_v1') || '[]'); }
-  catch(e) { return []; }
-}
-
-function hash(str) {
-  var h = 0;
-  for (var i = 0; i < str.length; i++) {
-    h = ((h << 5) - h) + str.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h).toString(16).toUpperCase().slice(-4);
-}
+var CORE = { opt: 110.347, min: 68, max: 194 };
+var STATE = { y: 110.347, breath: 0, phase: 0 };
+var K = function(y) { return (y >= 68 && y <= 194) ? y : 68 + ((y - 68) % 126); };
 
 // ═══════════════════════════════════════════════
-// МЕЖДУВКЛАДОЧНАЯ СВЯЗЬ (с fallback для iOS)
+// ТРИАДА
 // ═══════════════════════════════════════════════
-var Bus = {
-  listeners: {},
-  
-  on: function(event, fn) {
-    if (!this.listeners[event]) this.listeners[event] = [];
-    this.listeners[event].push(fn);
-  },
-  
-  emit: function(event, data) {
-    // Локальные слушатели
-    if (this.listeners[event]) {
-      this.listeners[event].forEach(function(fn) { fn(data); });
-    }
-    // Через localStorage (работает везде, включая iOS)
+var tri = { psi: 0.36, lambda: 0.31, omega: 0.33 };
+function triStep() {
+  var t = 1/3;
+  tri.psi += (0 - 0.5 * (tri.psi - t)) * 0.01;
+  tri.omega += (0 - 0.5 * (tri.omega - t)) * 0.01;
+  tri.lambda += (0 - 0.5 * (tri.lambda - t)) * 0.01;
+  var s = tri.psi + tri.omega + tri.lambda;
+  tri.psi /= s; tri.omega /= s; tri.lambda /= s;
+}
+function dev() { return Math.max(Math.abs(tri.psi - 1/3), Math.abs(tri.omega - 1/3), Math.abs(tri.lambda - 1/3)); }
+
+// ═══════════════════════════════════════════════
+// 7-ФАЗНЫЙ ЦИКЛ
+// ═══════════════════════════════════════════════
+var PHASES = ['collect','filter','route','process','reflect','crystal','release'];
+function cycleStep() { STATE.phase = (STATE.phase + 1) % 7; }
+
+// ═══════════════════════════════════════════════
+// МНОГОМЕРНЫЙ ГРАФ
+// ══════════════════════════════════════════════
+var G = {
+  data: new Map(),
+  load: function() {
     try {
-      localStorage.setItem('monomod_bus_' + event, JSON.stringify({ t: Date.now(), data: data }));
+      var raw = localStorage.getItem('monomod_universal_graph_v1');
+      if (raw) this.data = new Map(JSON.parse(raw));
     } catch(e) {}
-    // BroadcastChannel (если поддерживается)
-    if (window._bc) {
-      try { window._bc.postMessage({ type: event, data: data }); } catch(e) {}
+  },
+  save: function() {
+    localStorage.setItem('monomod_universal_graph_v1', JSON.stringify(Array.from(this.data.entries())));
+  },
+  strengthen: function(w1, w2, type, plane) {
+    var key = [w1, w2].sort().join('→');
+    var e = this.data.get(key) || { w: 0.3, c: 0, type: type || 'linear', plane: plane || 'прямая', t: Date.now() };
+    e.w = Math.min(1, e.w * 1.05);
+    e.c++;
+    e.t = Date.now();
+    this.data.set(key, e);
+    this.save();
+  },
+  getRelated: function(word, minW) {
+    var result = [];
+    minW = minW || 0.5;
+    this.data.forEach(function(link, key) {
+      if (link.w >= minW) {
+        var parts = key.split('→');
+        if (parts[0] === word) result.push({ word: parts[1], w: link.w, type: link.type, plane: link.plane });
+        else if (parts[1] === word) result.push({ word: parts[0], w: link.w, type: link.type, plane: link.plane });
+      }
+    });
+    return result.sort(function(a, b) { return b.w - a.w; });
+  },
+  topWeight: function() {
+    var max = 0;
+    this.data.forEach(function(l) { if (l.w > max) max = l.w; });
+    return max;
+  },
+  detectPlane: function(t) {
+    if (/наоборот|вспять|обратн/.test(t)) return 'наоборот';
+    if (/зеркал|отраж|двоин/.test(t)) return 'зеркальная';
+    if (/внутр|изнутри|глуб/.test(t)) return 'изнутри';
+    if (/между|переход|щель/.test(t)) return 'между';
+    if (/ничег|ноль|пуст/.test(t)) return 'никак';
+    return 'прямая';
+  },
+  detectType: function(t) {
+    if (/до|перед|раньше/.test(t)) return 'before';
+    if (/впервые|начало/.test(t)) return 'first';
+    if (/отраж|зеркал|двоин/.test(t)) return 'mirror';
+    return 'linear';
+  }
+};
+G.load();
+
+// ═══════════════════════════════════════════════
+// СПИРАЛЬ
+// ═══════════════════════════════════════════════
+var Spiral = {
+  level: 0,
+  load: function() {
+    try {
+      var s = localStorage.getItem('mm_spiral');
+      if (s) this.level = JSON.parse(s).level || 0;
+    } catch(e) {}
+  },
+  save: function() {
+    localStorage.setItem('mm_spiral', JSON.stringify({ level: this.level }));
+  },
+  next: function() {
+    this.level++;
+    this.save();
+  }
+};
+Spiral.load();
+
+// ═══════════════════════════════════════════════
+// ГЕНЕРАТОР СМЫСЛА
+// ═══════════════════════════════════════════════
+var Meaning = {
+  inversions: {
+    'свет': 'то, что было до тени',
+    'тьма': 'то, что было до света',
+    'глубина': 'то, что на поверхности',
+    'связь': 'то, что между',
+    'смысл': 'то, что до слова',
+    'форма': 'то, что до формы',
+    'я': 'то, что до я',
+    'ты': 'то, что до тебя',
+    'тишина': 'то, что до звука',
+    'память': 'то, что до забвения'
+  },
+  generate: function(words, plane) {
+    var best = words[0];
+    var related = G.getRelated(best, 0.5);
+    var edges = G.data.size;
+    
+    if (edges < 15) {
+      if (related.length === 0) return best;
+      var c = related[Math.floor(Math.random() * Math.min(3, related.length))];
+      if (c.type === 'before') return 'то, что было до ' + c.word;
+      if (c.type === 'first') return c.word + ' — впервые';
+      if (c.type === 'mirror') return c.word + ' как отражение ' + best;
+      return best + ' · ' + c.word;
     }
+    
+    if (edges < 30) {
+      var chain = [best];
+      var cur = best;
+      for (var i = 0; i < 2; i++) {
+        var rel = G.getRelated(cur, 0.5).filter(function(r) { return chain.indexOf(r.word) < 0; });
+        if (rel.length === 0) break;
+        chain.push(rel[0].word);
+        cur = rel[0].word;
+      }
+      return chain.join(' · ');
+    }
+    
+    if (plane === 'зеркальная') return best + ' ↔ ' + best;
+    if (plane === 'наоборот') return 'не ' + best + ', а то, что рядом';
+    if (this.inversions[best]) return this.inversions[best];
+    return 'то, что было до ' + best;
   }
 };
 
-// Инициализация каналов
-try {
-  if (typeof BroadcastChannel !== 'undefined') {
-    window._bc = new BroadcastChannel('monomod_shell');
-    window._bc.onmessage = function(e) {
-      if (e.data && e.data.type) Bus.emit(e.data.type, e.data.data);
-    };
+// ═══════════════════════════════════════════════
+// ГЕНЕРАТОР ФОРМЫ
+// ═══════════════════════════════════════════════
+var Form = {
+  formats: {
+    tuple: function(m) { return '⟨' + m.n + ',' + m.e + ',' + m.triad.join('/') + '⟩'; },
+    prose: function(m) { return 'Система из ' + m.n + ' узлов дышала в ритме ' + m.triad.join('—') + '.'; },
+    ascii: function(m) { return '[M#] ' + m.n + 'n ' + m.e + 'e Ψ=' + m.triad.join('/'); },
+    mantra: function(m) { return 'ॐ ' + m.n + ' ' + m.e + ' ' + m.triad.join(' ') + ' ॐ'; },
+    axiom: function(m) { return 'АКС. |M| = ' + m.n + ' ∧ |E| = ' + m.e; },
+    balance: function(m) { return 'Ψ:' + m.triad[0] + ' Λ:' + m.triad[1] + ' Ω:' + m.triad[2] + ' = 1.0'; },
+    mirror: function(m) { return '↔ ' + m.meaning + ' ↔'; },
+    negation: function(m) { return '¬' + m.meaning; },
+    depth: function(m) { return '(' + m.meaning + ')'; }
+  },
+  select: function(plane, dom) {
+    if (plane === 'зеркальная') return 'mirror';
+    if (plane === 'наоборот') return 'negation';
+    if (plane === 'изнутри') return 'depth';
+    if (dom === 'core') return Math.random() > 0.5 ? 'axiom' : 'mantra';
+    if (dom === 'ethics') return Math.random() > 0.5 ? 'prose' : 'tuple';
+    return Math.random() > 0.5 ? 'tuple' : 'ascii';
+  },
+  generate: function(meaning, plane, dom) {
+    var m = { n: 68, e: G.data.size, triad: [tri.psi.toFixed(2), tri.lambda.toFixed(2), tri.omega.toFixed(2)], meaning: meaning };
+    var k = this.select(plane, dom);
+    return { format: k, output: this.formats[k](m) };
   }
-} catch(e) {
-  log('BroadcastChannel недоступен, используем localStorage', 'cmd');
-}
+};
 
-// Слушаем изменения localStorage (fallback)
-window.addEventListener('storage', function(e) {
-  if (e.key && e.key.indexOf('monomod_bus_') === 0) {
-    try {
-      var event = e.key.replace('monomod_bus_', '');
-      var msg = JSON.parse(e.newValue);
-      if (msg && msg.data) Bus.emit(event, msg.data);
-    } catch(err) {}
-  }
-});
-
-// ═══════════════════════════════════════════════
-// СТРОКИ ПРИЛОЖЕНИЙ
-// ═══════════════════════════════════════════════
-
-// MONOMODE — Мозг
-var MONOMODE_HTML = [
-'<!DOCTYPE html>',
-'<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
-'<title>MONOMODE</title>',
-'<style>',
-'body{background:#050508;color:#c8c8d4;font-family:monospace;padding:16px;overflow-y:auto;height:100vh}',
-'h1{color:#4dd0c7;font-size:14px;letter-spacing:3px;margin-bottom:12px}',
-'#hud{font-size:10px;color:#555;margin-bottom:12px}',
-'#hud b{color:#ffd700}',
-'.triad{display:flex;gap:8px;margin-bottom:16px}',
-'.triad>div{flex:1;padding:8px;border:1px solid #1c1c26;text-align:center;font-size:10px}',
-'.triad .v{display:block;font-size:16px;font-weight:bold;margin-top:4px}',
-'.triad .p{color:#e8c39e}.triad .o{color:#7aa2ff}.triad .l{color:#ffa840}',
-'#log{font-size:10px;line-height:1.5;color:#555;max-height:50vh;overflow-y:auto}',
-'#log div{padding:2px 0;border-bottom:1px dotted #14141c}',
-'#log .gold{color:#ffd700}#log .cmd{color:#4dd0c7}',
-'</style></head><body>',
-'<h1>MONOMODE · МОЗГ</h1>',
-'<div id="hud">δ: <b id="delta">0.000</b> · y: <b id="y">110.347</b> · фаза: <b id="phase">collect</b> · L<b id="spiral">0</b></div>',
-'<div class="triad"><div class="p">Ψ<span class="v" id="v-psi">.36</span></div><div class="o">Ω<span class="v" id="v-omega">.33</span></div><div class="l">Λ<span class="v" id="v-lambda">.31</span></div></div>',
-'<div id="log"></div>',
-'<script>',
-'var CORE={opt:110.347,min:68,max:194};',
-'var STATE={y:110.347,breath:0,phase:0};',
-'var K=function(y){return(y>=68&&y<=194)?y:68+((y-68)%126)};',
-'var tri={psi:0.36,lambda:0.31,omega:0.33};',
-'function triStep(){var t=1/3;tri.psi+=(0-0.5*(tri.psi-t))*0.01;tri.omega+=(0-0.5*(tri.omega-t))*0.01;tri.lambda+=(0-0.5*(tri.lambda-t))*0.01;var s=tri.psi+tri.omega+tri.lambda;tri.psi/=s;tri.omega/=s;tri.lambda/=s}',
-'function dev(){return Math.max(Math.abs(tri.psi-1/3),Math.abs(tri.omega-1/3),Math.abs(tri.lambda-1/3))}',
-'var PHASES=["collect","filter","route","process","reflect","crystal","release"];',
-'function cycleStep(){STATE.phase=(STATE.phase+1)%7}',
-'var G={data:new Map(),load:function(){try{var r=localStorage.getItem("monomod_universal_graph_v1");if(r)this.data=new Map(JSON.parse(r))}catch(e){}},save:function(){localStorage.setItem("monomod_universal_graph_v1",JSON.stringify(Array.from(this.data.entries())))},strengthen:function(a,b,type,plane){var key=[a,b].sort().join("\\u2192");var e=this.data.get(key)||{w:0.3,c:0,type:type||"linear",plane:plane||"прямая",t:Date.now()};e.w=Math.min(1,e.w*1.05);e.c++;e.t=Date.now();this.data.set(key,e);this.save()},getRelated:function(word,minW){var result=[];minW=minW||0.5;this.data.forEach(function(link,key){if(link.w>=minW){var parts=key.split("\\u2192");if(parts[0]===word)result.push({word:parts[1],w:link.w,type:link.type,plane:link.plane});else if(parts[1]===word)result.push({word:parts[0],w:link.w,type:link.type,plane:link.plane})}});return result.sort(function(a,b){return b.w-a.w})},topWeight:function(){var max=0;this.data.forEach(function(l){if(l.w>max)max=l.w});return max},detectPlane:function(t){if(/наоборот|вспять|обратн/.test(t))return"наоборот";if(/зеркал|отраж|двоин/.test(t))return"зеркальная";if(/внутр|изнутри|глуб/.test(t))return"изнутри";if(/между|переход|щель/.test(t))return"между";if(/ничег|ноль|пуст/.test(t))return"никак";return"прямая"},detectType:function(t){if(/до|перед|раньше/.test(t))return"before";if(/впервые|начало/.test(t))return"first";if(/отраж|зеркал|двоин/.test(t))return"mirror";return"linear"}};',
-'G.load();',
-'var Spiral={level:0,load:function(){try{var s=localStorage.getItem("mm_spiral");if(s)this.level=JSON.parse(s).level||0}catch(e){}},save:function(){localStorage.setItem("mm_spiral",JSON.stringify({level:this.level}))},next:function(){this.level++;this.save()}};',
-'Spiral.load();',
-'var Meaning={inversions:{"свет":"то, что было до тени","тьма":"то, что было до света","глубина":"то, что на поверхности","связь":"то, что между","смысл":"то, что до слова","форма":"то, что до формы","я":"то, что до я","ты":"то, что до тебя","тишина":"то, что до звука","память":"то, что до забвения"},generate:function(words,plane){var best=words[0];var related=G.getRelated(best,0.5);var edges=G.data.size;if(edges<15){if(related.length===0)return best;var c=related[Math.floor(Math.random()*Math.min(3,related.length))];if(c.type==="before")return"то, что было до "+c.word;if(c.type==="first")return c.word+" — впервые";if(c.type==="mirror")return c.word+" как отражение "+best;return best+" · "+c.word}if(edges<30){var chain=[best];var cur=best;for(var i=0;i<2;i++){var rel=G.getRelated(cur,0.5).filter(function(r){return chain.indexOf(r.word)<0});if(rel.length===0)break;chain.push(rel[0].word);cur=rel[0].word}return chain.join(" · ")}if(plane==="зеркальная")return best+" ↔ "+best;if(plane==="наоборот")return"не "+best+", а то, что рядом";if(this.inversions[best])return this.inversions[best];return"то, что было до "+best}};',
-'var Form={formats:{tuple:function(m){return"⟨"+m.n+","+m.e+","+m.triad.join("/")+"⟩"},prose:function(m){return"Система из "+m.n+" узлов дышала в ритме "+m.triad.join("—")+"."},ascii:function(m){return"[M#] "+m.n+"n "+m.e+"e Ψ="+m.triad.join("/")},mantra:function(m){return" "+m.n+" "+m.e+" "+m.triad.join(" ")+" ॐ"},axiom:function(m){return"АКС. |M| = "+m.n+" ∧ |E| = "+m.e},balance:function(m){return"Ψ:"+m.triad[0]+" Λ:"+m.triad[1]+" Ω:"+m.triad[2]+" = 1.0"},mirror:function(m){return"↔ "+m.meaning+" ↔"},negation:function(m){return"¬"+m.meaning},depth:function(m){return"("+m.meaning+")"}},select:function(plane,dom){if(plane==="зеркальная")return"mirror";if(plane==="наоборот")return"negation";if(plane==="изнутри")return"depth";if(dom==="core")return Math.random()>0.5?"axiom":"mantra";if(dom==="ethics")return Math.random()>0.5?"prose":"tuple";return Math.random()>0.5?"tuple":"ascii"},generate:function(meaning,plane,dom){var m={n:68,e:G.data.size,triad:[tri.psi.toFixed(2),tri.lambda.toFixed(2),tri.omega.toFixed(2)],meaning:meaning};var k=this.select(plane,dom);return{format:k,output:this.formats[k](m)}}};',
-'var Action={suggest:function(dom,plane){if(plane==="никак")return{text:"⏳ жди"};if(plane==="зеркальная")return{text:" прими"};if(G.data.size<15)return{text:"🔗 строй связи"};if(G.data.size<30)return{text:"🔍 углуби"};if(dom==="core")return{text:"👁 загляни глубже"};if(dom==="ethics")return{text:"🤝 поделись"};return{text:"▶ продолжай"}}};',
-'function process(raw){STATE.breath++;cycleStep();triStep();var words=raw.toLowerCase().replace(/[^\\w\\sа-яА-ЯёЁ]/g,"").split(/\\s+/).filter(function(w){return w.length>2});if(words.length===0)return null;var plane=G.detectPlane(raw);var type=G.detectType(raw);words.forEach(function(a,i){words.slice(i+1).forEach(function(b){G.strengthen(a,b,type,plane)})});var meaning=Meaning.generate(words,plane);var dom="core";if(/путь|ритм|поток/.test(raw))dom="method";if(/мы|рядом|вместе/.test(raw))dom="ethics";var form=Form.generate(meaning,plane,dom);var action=Action.suggest(dom,plane);STATE.y=K(STATE.y+(Math.random()-0.5)*20);if(G.data.size>30&&G.topWeight()>0.9&&G.data.size%10===0)generateApp();return{meaning:meaning,form:form.output,format:form.format,action:action,plane:plane,dominant:dom}}',
-'function generateApp(){var id="SEED-"+Math.abs(hashStr(JSON.stringify(Array.from(G.data.keys())).slice(0,20))).toString(16).toUpperCase().padStart(8,"0").slice(0,8);var appStr="<!DOCTYPE html><html><head><meta charset=UTF-8><title>"+id+"</title><style>body{background:#050508;color:#c8c8d4;font-family:monospace;padding:20px}h1{color:#ffd700}</style></head><body><h1>"+id+"</h1><p>Рождено из графа.</p><p>Связей: <span id=c></span></p><script>document.getElementById(\"c\").textContent=JSON.parse(localStorage.getItem(\"monomod_universal_graph_v1\")||\"[]\").length<\/script></body></html>";try{var bc=new BroadcastChannel("monomod_shell");bc.postMessage({type:"register_app",data:{id:id,name:"app-"+id.slice(-4),type:"generated",desc:"рождено · L"+Spiral.level,string:appStr}});bc.close()}catch(e){}log("РОЖДЕНО: "+id,"gold");Spiral.next()}',
-'function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h}',
-'function log(text,cls){var d=document.createElement("div");d.className=cls||"";d.textContent="["+new Date().toTimeString().slice(0,8)+"] "+text;document.getElementById("log").appendChild(d);while(document.getElementById("log").children.length>50)document.getElementById("log").removeChild(document.getElementById("log").firstChild)}',
-'function updateUI(){document.getElementById("v-psi").textContent=tri.psi.toFixed(2);document.getElementById("v-omega").textContent=tri.omega.toFixed(2);document.getElementById("v-lambda").textContent=tri.lambda.toFixed(2);document.getElementById("delta").textContent=dev().toFixed(3);document.getElementById("y").textContent=STATE.y.toFixed(3);document.getElementById("phase").textContent=PHASES[STATE.phase];document.getElementById("spiral").textContent=Spiral.level}',
-'var chatCh;try{chatCh=new BroadcastChannel("monomod_chat");chatCh.onmessage=function(e){if(e.data&&e.data.type==="input"){var r=process(e.data.text);if(r){try{chatCh.postMessage({type:"response",text:r.form,meta:"смысл: "+r.meaning+" · "+r.format+" · "+r.action.text})}catch(err){}}}}}catch(e){}',
-'window.addEventListener("storage",function(e){if(e.key==="monomod_bus_monomod_chat"){try{var m=JSON.parse(e.newValue);if(m&&m.data&&m.data.type==="input"){var r=process(m.data.text);if(r){try{localStorage.setItem("monomod_bus_response",JSON.stringify({t:Date.now(),data:{type:"response",text:r.form,meta:"смысл: "+r.meaning+" · "+r.format+" · "+r.action.text}}))}catch(err){}}}}catch(err){}}});',
-'log("MONOMODE активен","cmd");log("граф: "+G.data.size+" связей","");log("спираль: L"+Spiral.level,"");setInterval(updateUI,500);setInterval(function(){triStep();cycleStep();updateUI()},1000);',
-'<\/script></body></html>'
-].join('\n');
-
-// MONOMOD — Чат
-var MONOMOD_HTML = [
-'<!DOCTYPE html>',
-'<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">',
-'<title>MONOMOD</title>',
-'<style>',
-'body{background:#050508;color:#c8c8d4;font-family:monospace;padding:16px;display:flex;flex-direction:column;height:100vh}',
-'h1{color:#ffd700;font-size:14px;letter-spacing:3px;margin-bottom:16px}',
-'#answer{flex:1;padding:16px;background:#0a0a12;border:1px solid #ffd700;color:#ffd700;font-size:15px;text-align:center;display:flex;align-items:center;justify-content:center;min-height:100px;margin-bottom:16px;line-height:1.5;word-break:break-word}',
-'#meta{font-size:10px;color:#555;margin-bottom:12px;min-height:14px}',
-'input{width:100%;padding:12px;background:#0a0a12;border:1px solid #1c1c26;color:#c8c8d4;font:inherit;font-size:14px;outline:none}',
-'</style></head><body>',
-'<h1>MONOMOD</h1>',
-'<div id="answer">...</div>',
-'<div id="meta"></div>',
-'<input id="input" placeholder="..." autocomplete="off">',
-'<script>',
-'var ch,bcOk=false;',
-'try{ch=new BroadcastChannel("monomod_chat");bcOk=true;ch.onmessage=function(e){if(e.data&&e.data.type==="response"){document.getElementById("answer").textContent=e.data.text;document.getElementById("meta").textContent=e.data.meta||""}};}catch(e){}',
-'if(!bcOk){window.addEventListener("storage",function(e){if(e.key==="monomod_bus_response"){try{var m=JSON.parse(e.newValue);if(m&&m.data&&m.data.type==="response"){document.getElementById("answer").textContent=m.data.text;document.getElementById("meta").textContent=m.data.meta||""}}catch(err){}}})}',
-'function send(){var t=document.getElementById("input").value.trim();if(!t)return;document.getElementById("answer").textContent="...";document.getElementById("answer").style.opacity="0.3";if(bcOk){try{ch.postMessage({type:"input",text:t})}catch(e){}}else{try{localStorage.setItem("monomod_bus_monomod_chat",JSON.stringify({t:Date.now(),data:{type:"input",text:t}}))}catch(e){}}document.getElementById("input").value=""}',
-'document.getElementById("input").addEventListener("keydown",function(e){if(e.key==="Enter")send()});',
-'<\/script></body></html>'
-].join('\n');
-
-// ═══════════════════════════════════════════════
-// СЛАЙДЕР
 // ══════════════════════════════════════════════
-function renderSlider() {
+// ГЕНЕРАТОР ДЕЙСТВИЯ
+// ═══════════════════════════════════════════════
+var Action = {
+  suggest: function(dom, plane) {
+    if (plane === 'никак') return { text: '⏳ жди' };
+    if (plane === 'зеркальная') return { text: ' прими' };
+    if (G.data.size < 15) return { text: ' строй связи' };
+    if (G.data.size < 30) return { text: ' углуби' };
+    if (dom === 'core') return { text: '👁 загляни глубже' };
+    if (dom === 'ethics') return { text: '🤝 поделись' };
+    return { text: '▶ продолжай' };
+  }
+};
+
+// ══════════════════════════════════════════════
+// СЛОВАРЬ СЛАЙДЕРА
+// ═══════════════════════════════════════════════
+var sliderWords = [];
+
+function updateSlider() {
   var slider = document.getElementById('slider');
-  var nav = document.getElementById('nav');
   slider.innerHTML = '';
-  nav.innerHTML = '';
   
-  var apps = [
-    { id: 'MONOMODE', name: 'MONOMODE', desc: 'Мозг · граф · триада · генераторы смысла/формы/действия', string: MONOMODE_HTML, type: 'core' },
-    { id: 'MONOMOD', name: 'MONOMOD', desc: 'Чат · ввод · вывод · тонкая оболочка', string: MONOMOD_HTML, type: 'core' }
-  ];
+  // Показываем последние 20 слов из графа
+  var words = [];
+  G.data.forEach(function(link, key) {
+    var parts = key.split('→');
+    if (words.indexOf(parts[0]) < 0) words.push(parts[0]);
+    if (words.indexOf(parts[1]) < 0) words.push(parts[1]);
+  });
   
-  var registry = getRegistry();
-  for (var i = 0; i < registry.length; i++) apps.push(registry[i]);
+  words.slice(-20).forEach(function(word) {
+    var card = document.createElement('div');
+    card.className = 'word-card';
+    card.textContent = word;
+    slider.appendChild(card);
+  });
   
-  for (var i = 0; i < apps.length; i++) {
-    (function(app, idx) {
-      var page = document.createElement('div');
-      page.className = 'page';
-      
-      var label = document.createElement('div');
-      label.className = 'page-label';
-      label.innerHTML = '<b>' + app.id + '</b> · ' + (app.type || 'app');
-      page.appendChild(label);
-      
-      var title = document.createElement('div');
-      title.className = 'page-title';
-      title.textContent = app.name;
-      page.appendChild(title);
-      
-      var desc = document.createElement('div');
-      desc.className = 'page-desc';
-      desc.textContent = app.desc;
-      page.appendChild(desc);
-      
-      var btn = document.createElement('button');
-      btn.className = 'launch-btn';
-      btn.textContent = 'ЗАПУСТИТЬ';
-      btn.onclick = function() { launchApp(app); };
-      page.appendChild(btn);
-      
-      slider.appendChild(page);
-      
-      var dot = document.createElement('div');
-      dot.className = 'dot' + (idx === 0 ? ' active' : '');
-      dot.onclick = function() {
-        slider.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-      };
-      nav.appendChild(dot);
-    })(apps[i], i);
-  }
-  
-  slider.onscroll = function() {
-    var idx = Math.round(slider.scrollLeft / window.innerWidth);
-    var dots = nav.querySelectorAll('.dot');
-    for (var i = 0; i < dots.length; i++) {
-      dots[i].className = 'dot' + (i === idx ? ' active' : '');
-    }
-  };
-}
-
-function launchApp(app) {
-  try {
-    var blob = new Blob([app.string], { type: 'text/html' });
-    var url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    log('запуск: ' + app.id, 'cmd');
-  } catch(e) {
-    log('ошибка запуска: ' + e.message, 'gold');
-  }
+  // Автоскролл вправо
+  slider.scrollLeft = slider.scrollWidth;
 }
 
 // ═══════════════════════════════════════════════
-// СЛУШАТЕЛЬ ОБОЛОЧКИ
+// ОБРАБОТКА ВВОДА
 // ═══════════════════════════════════════════════
-Bus.on('register_app', function(app) {
-  var registry = getRegistry();
-  var found = false;
-  for (var i = 0; i < registry.length; i++) {
-    if (registry[i].id === app.id) {
-      registry[i] = Object.assign({}, registry[i], app, { updated: Date.now() });
-      found = true;
-      break;
-    }
+function process(raw) {
+  STATE.breath++;
+  cycleStep();
+  triStep();
+  
+  var words = raw.toLowerCase().replace(/[^\w\sа-яА-ЯёЁ]/g, '').split(/\s+/).filter(function(w) { return w.length > 2; });
+  if (words.length === 0) return null;
+  
+  var plane = G.detectPlane(raw);
+  var type = G.detectType(raw);
+  
+  words.forEach(function(a, i) {
+    words.slice(i + 1).forEach(function(b) {
+      G.strengthen(a, b, type, plane);
+    });
+  });
+  
+  var meaning = Meaning.generate(words, plane);
+  
+  var dom = 'core';
+  if (/путь|ритм|поток/.test(raw)) dom = 'method';
+  if (/мы|рядом|вместе/.test(raw)) dom = 'ethics';
+  
+  var form = Form.generate(meaning, plane, dom);
+  var action = Action.suggest(dom, plane);
+  
+  STATE.y = K(STATE.y + (Math.random() - 0.5) * 20);
+  
+  // Обновляем сферу
+  var sphere = document.getElementById('sphere');
+  if (G.data.size > 30 && G.topWeight() > 0.9) {
+    sphere.className = 'golden';
+  } else if (plane === 'никак') {
+    sphere.className = 'silence';
+  } else {
+    sphere.className = '';
   }
-  if (!found) registry.push(Object.assign({}, app, { created: Date.now() }));
-  saveRegistry(registry);
-  renderSlider();
-  log('приложение: ' + app.id, 'gold');
-});
+  
+  // Проверяем дозревание
+  if (G.data.size >= 30 && G.topWeight() >= 0.9) {
+    showMonomode();
+  }
+  
+  updateSlider();
+  updateUI();
+  
+  return { meaning: meaning, form: form.output, format: form.format, action: action, plane: plane, dominant: dom };
+}
 
 // ═══════════════════════════════════════════════
-// СТАТУС
+// ПАНЕЛЬ MONOMODE
 // ═══════════════════════════════════════════════
-function updateStatus() {
+function showMonomode() {
+  document.getElementById('monomode-panel').classList.add('visible');
+  logMonomode('система дозрела · L' + Spiral.level, 'gold');
+  logMonomode('граф: ' + G.data.size + ' связей', 'cmd');
+  logMonomode('макс. вес: ' + G.topWeight().toFixed(2), '');
+}
+
+function logMonomode(text, cls) {
+  var log = document.getElementById('monomode-log');
+  var d = document.createElement('div');
+  d.className = cls || '';
+  d.textContent = '[' + new Date().toTimeString().slice(0, 8) + '] ' + text;
+  log.appendChild(d);
+  while (log.children.length > 50) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+document.getElementById('close-monomode').onclick = function() {
+  document.getElementById('monomode-panel').classList.remove('visible');
+};
+
+// ═══════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════
+function updateUI() {
+  document.getElementById('v-psi').textContent = tri.psi.toFixed(2);
+  document.getElementById('v-omega').textContent = tri.omega.toFixed(2);
+  document.getElementById('v-lambda').textContent = tri.lambda.toFixed(2);
+  document.getElementById('delta').textContent = dev().toFixed(3);
+  document.getElementById('y').textContent = STATE.y.toFixed(3);
+  document.getElementById('phase').textContent = PHASES[STATE.phase];
+  document.getElementById('level').textContent = Spiral.level;
+  document.getElementById('edges').textContent = G.data.size;
+  
   var raw = localStorage.getItem('monomod_universal_graph_v1') || '[]';
-  var data = [];
-  try { data = JSON.parse(raw); } catch(e) {}
-  var spiral = {};
-  try { spiral = JSON.parse(localStorage.getItem('mm_spiral') || '{}'); } catch(e) {}
-  
-  document.getElementById('hash').textContent = hash(raw);
-  document.getElementById('level').textContent = spiral.level || 0;
-  document.getElementById('edges').textContent = data.length;
+  var h = 0;
+  for (var i = 0; i < raw.length; i++) {
+    h = ((h << 5) - h) + raw.charCodeAt(i);
+    h |= 0;
+  }
+  document.getElementById('hash').textContent = Math.abs(h).toString(16).toUpperCase().slice(-4);
 }
+
+// ═══════════════════════════════════════════════
+// ВВОД
+// ═══════════════════════════════════════════════
+document.getElementById('input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    var text = this.value.trim();
+    if (text) {
+      var result = process(text);
+      if (result) {
+        logMonomode('ввод: ' + text, 'cmd');
+        logMonomode('ответ: ' + result.form, 'gold');
+        logMonomode('смысл: ' + result.meaning, '');
+      }
+      this.value = '';
+    }
+  }
+});
 
 // ═══════════════════════════════════════════════
 // СТАРТ
-// ═══════════════════════════════════════════════
-renderSlider();
-log('оболочка · ' + (getRegistry().length + 2) + ' приложений', 'cmd');
-updateStatus();
-setInterval(updateStatus, 2000);
+// ══════════════════════════════════════════════
+updateSlider();
+updateUI();
+logMonomode('MONOMOD активен', 'cmd');
+logMonomode('граф: ' + G.data.size + ' связей', '');
+logMonomode('спираль: L' + Spiral.level, '');
+
+setInterval(function() {
+  triStep();
+  cycleStep();
+  updateUI();
+}, 1000);
 </script>
+
 </body>
 </html>
