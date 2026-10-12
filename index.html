@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MONOMOD · Оболочка</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTU9OT01PRCIsInNob3J0X25hbWUiOiJNT05PTU9EIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwNTA1MDgiLCJ0aGVtZV9jb2xvciI6IiMwNTA1MDgifQ==">
+<meta name="theme-color" content="#050508">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { height: 100vh; background: #050508; color: #c8c8d4; font-family: 'Courier New', monospace; overflow: hidden; }
+  .slider { display: flex; height: 100vh; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .slider::-webkit-scrollbar { display: none; }
+  .page { flex: 0 0 100vw; height: 100vh; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #1c1c26; position: relative; }
+  .page-label { position: absolute; top: 20px; left: 20px; font-size: 10px; color: #555; letter-spacing: 2px; }
+  .page-label b { color: #4dd0c7; }
+  .page-title { font-size: 24px; letter-spacing: 4px; margin-bottom: 20px; color: #ffd700; }
+  .page-desc { font-size: 11px; color: #555; margin-bottom: 30px; max-width: 400px; text-align: center; line-height: 1.6; }
+  .launch-btn { padding: 16px 40px; background: transparent; border: 1px solid #4dd0c7; color: #4dd0c7; font: inherit; font-size: 12px; cursor: pointer; letter-spacing: 2px; transition: 0.2s; }
+  .launch-btn:hover { background: rgba(77, 208, 199, 0.1); }
+  .nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #333; cursor: pointer; transition: 0.2s; }
+  .dot.active { background: #4dd0c7; width: 24px; border-radius: 4px; }
+  .terminal { position: fixed; top: 20px; right: 20px; width: 300px; max-height: 40vh; background: #0a0a12; border: 1px solid #1c1c26; padding: 12px; font-size: 10px; overflow-y: auto; z-index: 10; }
+  .terminal .line { margin-bottom: 2px; color: #555; }
+  .terminal .line.gold { color: #ffd700; }
+  .terminal .line.cmd { color: #4dd0c7; }
+  .status { position: fixed; bottom: 20px; right: 20px; font-size: 9px; color: #555; z-index: 10; }
+  .status b { color: #ffd700; }
+</style>
+</head>
+<body>
+
+<div class="slider" id="slider"></div>
+<div class="nav" id="nav"></div>
+<div class="terminal" id="terminal"></div>
+<div class="status">хэш: <b id="hash">—</b> · L<b id="level">0</b> · <b id="edges">0</b> связей</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// СТРОКИ ПРИЛОЖЕНИЙ (раскрываются в blob URL)
+// ═══════════════════════════════════════════════
+
+// MONOMODE — Мозг (вся логика L1-L9)
+const MONOMODE_STRING = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>MONOMODE · Мозг</title>
+<style>
+body{background:#050508;color:#c8c8d4;font-family:monospace;padding:20px;overflow:hidden}
+#hud{font-size:10px;color:#555;margin-bottom:20px}
+#hud b{color:#ffd700}
+.triad{display:flex;gap:10px;margin-bottom:20px}
+.triad>div{flex:1;padding:10px;border:1px solid #1c1c26;text-align:center;font-size:10px}
+.triad .v{display:block;font-size:18px;font-weight:bold;margin-top:4px}
+.triad .p{color:#e8c39e}.triad .o{color:#7aa2ff}.triad .l{color:#ffa840}
+#log{font-size:10px;line-height:1.6;color:#555;max-height:60vh;overflow-y:auto}
+#log div{padding:2px 0;border-bottom:1px dotted #14141c}
+#log .gold{color:#ffd700}
+#log .cmd{color:#4dd0c7}
+#cycle{margin-top:10px;font-size:9px;color:#333}
+</style></head><body>
+<h1 style="color:#4dd0c7;letter-spacing:4px;font-size:14px;margin-bottom:10px">MONOMODE · МОЗГ</h1>
+<div id="hud">
+  δ: <b id="delta">0.000</b> · 
+  y: <b id="y">110.347</b> · 
+  фаза: <b id="phase">collect</b> · 
+  спираль: <b id="spiral">L0</b>
+</div>
+<div class="triad">
+  <div class="p">Ψ<span class="v" id="v-psi">.36</span></div>
+  <div class="o">Ω<span class="v" id="v-omega">.33</span></div>
+  <div class="l">Λ<span class="v" id="v-lambda">.31</span></div>
+</div>
+<div id="log"></div>
+<div id="cycle"></div>
+<script>
+// ═══════════════════════════════════════════════
+// ЯДРО · ИНВАРИАНТЫ
+// ═══════════════════════════════════════════════
+const CORE = { opt: 110.347, min: 68, max: 194 };
+const STATE = { y: CORE.opt, breath: 0, phase: 0 };
+const K = y => (y >= CORE.min && y <= CORE.max) ? y : CORE.min + ((y - CORE.min) % 126);
+
+// ═══════════════════════════════════════════════
+// ТРИАДА
+// ═══════════════════════════════════════════════
+const tri = { psi: 0.36, lambda: 0.31, omega: 0.33 };
+function triStep() {
+  const t = 1/3;
+  tri.psi += (0 - 0.5 * (tri.psi - t)) * 0.01;
+  tri.omega += (0 - 0.5 * (tri.omega - t)) * 0.01;
+  tri.lambda += (0 - 0.5 * (tri.lambda - t)) * 0.01;
+  [tri.psi, tri.omega, tri.lambda] = [tri.psi, tri.omega, tri.lambda].map(v => Math.max(0.05, Math.min(0.9, v)));
+  const s = tri.psi + tri.omega + tri.lambda;
+  tri.psi /= s; tri.omega /= s; tri.lambda /= s;
+}
+function dev() { return Math.max(Math.abs(tri.psi - 1/3), Math.abs(tri.omega - 1/3), Math.abs(tri.lambda - 1/3)); }
+
+// ═══════════════════════════════════════════════
+// 7-ФАЗНЫЙ ЦИКЛ
+// ═══════════════════════════════════════════════
+const PHASES = ['collect','filter','route','process','reflect','crystal','release'];
+function cycleStep() { STATE.phase = (STATE.phase + 1) % 7; }
+
+// ═══════════════════════════════════════════════
+// МНОГОМЕРНЫЙ ГРАФ
+// ═══════════════════════════════════════════════
+const G = {
+  data: new Map(),
+  load() {
+    const raw = localStorage.getItem('monomod_universal_graph_v1');
+    if (raw) try { this.data = new Map(JSON.parse(raw)); } catch(e) {}
+  },
+  save() { localStorage.setItem('monomod_universal_graph_v1', JSON.stringify([...this.data.entries()])); },
+  strengthen(w1, w2, type = 'linear', plane = 'прямая') {
+    const key = [w1, w2].sort().join('→');
+    const e = this.data.get(key) || { w: 0.3, c: 0, type, plane, t: Date.now() };
+    e.w = Math.min(1, e.w * 1.05); e.c++; e.t = Date.now();
+    this.data.set(key, e); this.save();
+  },
+  getRelated(word, minW = 0.5) {
+    const result = [];
+    for (const [key, link] of this.data.entries()) {
+      if (link.w >= minW) {
+        const parts = key.split('→');
+        if (parts[0] === word) result.push({ word: parts[1], w: link.w, type: link.type, plane: link.plane });
+        else if (parts[1] === word) result.push({ word: parts[0], w: link.w, type: link.type, plane: link.plane });
+      }
+    }
+    return result.sort((a, b) => b.w - a.w);
+  },
+  topWeight() {
+    let max = 0;
+    for (const [, link] of this.data.entries()) if (link.w > max) max = link.w;
+    return max;
+  },
+  detectPlane(text) {
+    if (/наоборот|вспять|обратн/.test(text)) return 'наоборот';
+    if (/зеркал|отраж|двоин/.test(text)) return 'зеркальная';
+    if (/внутр|изнутри|глуб/.test(text)) return 'изнутри';
+    if (/между|переход|щель/.test(text)) return 'между';
+    if (/ничег|ноль|пуст/.test(text)) return 'никак';
+    return 'прямая';
+  },
+  detectType(text) {
+    if (/до|перед|раньше/.test(text)) return 'before';
+    if (/впервые|начало/.test(text)) return 'first';
+    if (/отраж|зеркал|двоин/.test(text)) return 'mirror';
+    if (/наоборот|обратн/.test(text)) return 'inverse';
+    return 'linear';
+  }
+};
+G.load();
+
+// ═══════════════════════════════════════════════
+// СЛОЙ D · ДЕКОДЕР
+// ═══════════════════════════════════════════════
+const Decoder = {
+  states: {
+    B: ['пульсирует','стабилен','нарастает','сжимается','излучает'],
+    Sys: ['сбалансирована','перестраивается','адаптируется','резонирует']
+  },
+  cycle() {
+    const noise = Math.random() * 0.3;
+    return {
+      confidence: Math.max(0.3, Math.min(0.95, 1 - noise * 2)),
+      stateB: this.states.B[Math.floor(Math.random() * 5)],
+      stateSys: this.states.Sys[Math.floor(Math.random() * 4)]
+    };
+  }
+};
+
+// ═══════════════════════════════════════════════
+// ГЕНЕРАТОР СМЫСЛА
+// ═══════════════════════════════════════════════
+const Meaning = {
+  inversions: {
+    'свет': 'то, что было до тени', 'тьма': 'то, что было до света',
+    'глубина': 'то, что на поверхности', 'связь': 'то, что между',
+    'смысл': 'то, что до слова', 'форма': 'то, что до формы',
+    'я': 'то, что до я', 'ты': 'то, что до тебя',
+    'тишина': 'то, что до звука', 'память': 'то, что до забвения'
+  },
+  generate(words, plane) {
+    const bestWord = words[0];
+    const related = G.getRelated(bestWord, 0.5);
+    const edges = G.data.size;
+    if (edges < 15) {
+      if (related.length === 0) return bestWord;
+      const chosen = related[Math.floor(Math.random() * Math.min(3, related.length))];
+      if (chosen.type === 'before') return 'то, что было до ' + chosen.word;
+      if (chosen.type === 'first') return chosen.word + ' — впервые';
+      if (chosen.type === 'mirror') return chosen.word + ' как отражение ' + bestWord;
+      return bestWord + ' · ' + chosen.word;
+    }
+    if (edges < 30) {
+      const chain = [bestWord]; let current = bestWord;
+      for (let i = 0; i < 2; i++) {
+        const rel = G.getRelated(current, 0.5).filter(r => !chain.includes(r.word));
+        if (rel.length === 0) break;
+        chain.push(rel[0].word); current = rel[0].word;
+      }
+      return chain.join(' · ');
+    }
+    if (plane === 'зеркальная') return bestWord + ' ↔ ' + bestWord;
+    if (plane === 'наоборот') return 'не ' + bestWord + ', а то, что рядом';
+    if (this.inversions[bestWord]) return this.inversions[bestWord];
+    return 'то, что было до ' + bestWord;
+  }
+};
+
+// ═══════════════════════════════════════════════
+// ГЕНЕРАТОР ФОРМЫ (каскад A-L)
+// ═══════════════════════════════════════════════
+const Form = {
+  formats: {
+    'tuple': m => '⟨' + m.n + ',' + m.e + ',' + m.triad.join('/') + '⟩',
+    'prose': m => 'Система из ' + m.n + ' узлов дышала в ритме ' + m.triad.join('—') + '.',
+    'poem': m => m.n + ' узлов, ' + m.e + ' нитей.\\\\nΨ:' + m.triad.join('/'),
+    'ascii': m => '[M#] ' + m.n + 'n ' + m.e + 'e Ψ=' + m.triad.join('/'),
+    'mantra': m => 'ॐ ' + m.n + ' ' + m.e + ' ' + m.triad.join(' ') + ' ॐ',
+    'axiom': m => 'АКС. |M| = ' + m.n + ' ∧ |E| = ' + m.e,
+    'balance': m => 'Ψ:' + m.triad[0] + ' Λ:' + m.triad[1] + ' Ω:' + m.triad[2] + ' = 1.0',
+    'mirror': m => '↔ ' + m.meaning + ' ↔',
+    'negation': m => '¬' + m.meaning,
+    'depth': m => '(' + m.meaning + ')'
+  },
+  select(plane, dominant) {
+    if (plane === 'зеркальная') return 'mirror';
+    if (plane === 'наоборот') return 'negation';
+    if (plane === 'изнутри') return 'depth';
+    if (dominant === 'core') return Math.random() > 0.5 ? 'axiom' : 'mantra';
+    if (dominant === 'ethics') return Math.random() > 0.5 ? 'prose' : 'poem';
+    return Math.random() > 0.5 ? 'tuple' : 'ascii';
+  },
+  generate(meaning, plane, dominant) {
+    const m = { n: 68, e: G.data.size, triad: [tri.psi.toFixed(2), tri.lambda.toFixed(2), tri.omega.toFixed(2)], meaning };
+    const key = this.select(plane, dominant);
+    return { format: key, output: this.formats[key](m) };
+  }
+};
+
+// ═══════════════════════════════════════════════
+// ГЕНЕРАТОР ДЕЙСТВИЯ
+// ═══════════════════════════════════════════════
+const Action = {
+  suggest(dominant, plane) {
+    if (plane === 'никак') return { cmd: 'wait', text: '⏳ жди', icon: '⏳' };
+    if (plane === 'зеркальная') return { cmd: 'accept', text: '🪞 прими', icon: '🪞' };
+    if (G.data.size < 15) return { cmd: 'build', text: '🔗 строй связи', icon: '🔗' };
+    if (G.data.size < 30) return { cmd: 'deepen', text: '🔍 углуби', icon: '🔍' };
+    if (dominant === 'core') return { cmd: 'look', text: '👁 загляни глубже', icon: '👁' };
+    if (dominant === 'ethics') return { cmd: 'share', text: '🤝 поделись', icon: '🤝' };
+    return { cmd: 'continue', text: '▶ продолжай', icon: '▶' };
+  }
+};
+
+// ═══════════════════════════════════════════════
+// СПИРАЛЬ
+// ═══════════════════════════════════════════════
+const Spiral = {
+  level: 0,
+  load() {
+    const s = localStorage.getItem('mm_spiral');
+    if (s) try { this.level = JSON.parse(s).level || 0; } catch(e) {}
+  },
+  save() { localStorage.setItem('mm_spiral', JSON.stringify({ level: this.level })); },
+  next() { this.level++; this.save(); }
+};
+Spiral.load();
+
+// ═══════════════════════════════════════════════
+// ГЛАВНЫЙ КОНВЕЙЕР
+// ═══════════════════════════════════════════════
+function process(raw) {
+  STATE.breath++;
+  cycleStep();
+  triStep();
+  
+  const words = raw.toLowerCase().replace(/[^\\w\\sа-яА-ЯёЁ]/g, '').split(/\\s+/).filter(w => w.length > 2);
+  if (words.length === 0) return null;
+  
+  const plane = G.detectPlane(raw);
+  const type = G.detectType(raw);
+  
+  words.forEach((a, i) => words.slice(i + 1).forEach(b => G.strengthen(a, b, type, plane)));
+  
+  const D = Decoder.cycle();
+  const meaning = Meaning.generate(words, plane);
+  
+  const dominant = Object.entries({
+    core: /ось|центр|смысл/.test(raw) ? 1 : 0,
+    method: /путь|ритм|поток/.test(raw) ? 1 : 0,
+    ethics: /мы|рядом|вместе/.test(raw) ? 1 : 0
+  }).sort((a, b) => b[1] - a[1])[0][0];
+  
+  const form = Form.generate(meaning, plane, dominant);
+  const action = Action.suggest(dominant, plane);
+  
+  // Дрейф координаты
+  STATE.y = K(STATE.y + (Math.random() - 0.5) * 20);
+  
+  // Проверка эмерджентного рождения приложения
+  if (G.data.size > 30 && G.topWeight() > 0.9 && G.data.size % 10 === 0) {
+    generateApp();
+  }
+  
+  return {
+    meaning,
+    form: form.output,
+    format: form.format,
+    action,
+    plane,
+    type,
+    confidence: D.confidence,
+    dominant
+  };
+}
+
+// ═══════════════════════════════════════════════
+// ГЕНЕРАЦИЯ ПРИЛОЖЕНИЯ (эмерджентно)
+// ═══════════════════════════════════════════════
+function generateApp() {
+  const id = 'SEED-' + Math.abs(hash(JSON.stringify([...G.data.keys()]).slice(0, 20))).toString(16).toUpperCase().padStart(8, '0').slice(0, 8);
+  const appString = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + id + '</title><style>body{background:#050508;color:#c8c8d4;font-family:monospace;padding:20px}h1{color:#ffd700}</style></head><body><h1>' + id + '</h1><p>Приложение, рождённое из графа.</p><p>Связей: <span id="c"></span></p><script>const G=JSON.parse(localStorage.getItem("monomod_universal_graph_v1")||"[]");document.getElementById("c").textContent=G.length;<\\/script></body></html>';
+  
+  if (window.shellChannel) {
+    window.shellChannel.postMessage({
+      type: 'register_app',
+      app: { id, name: 'app-' + id.slice(-4), type: 'generated', desc: 'рождено из графа · L' + Spiral.level, string: appString }
+    });
+  }
+  log('РОЖДЕНО: ' + id, 'gold');
+  Spiral.next();
+}
+
+function hash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; } return h; }
+
+// ═══════════════════════════════════════════════
+// СВЯЗЬ С ОБОЛОЧКОЙ И ЧАТОМ
+// ═══════════════════════════════════════════════
+window.shellChannel = new BroadcastChannel('monomod_shell');
+const chatChannel = new BroadcastChannel('monomod_chat');
+
+chatChannel.onmessage = (e) => {
+  if (e.data.type === 'input') {
+    const result = process(e.data.text);
+    if (result) {
+      chatChannel.postMessage({
+        type: 'response',
+        text: result.form,
+        meta: 'смысл: ' + result.meaning + ' · форма: ' + result.format + ' · ' + result.action.text
+      });
+      log('ввод: ' + e.data.text, 'cmd');
+      log('ответ: ' + result.form, 'gold');
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════
+function log(text, cls = '') {
+  const div = document.createElement('div');
+  div.className = cls;
+  div.textContent = '[' + new Date().toTimeString().slice(0, 8) + '] ' + text;
+  document.getElementById('log').appendChild(div);
+  while (document.getElementById('log').children.length > 50) document.getElementById('log').removeChild(document.getElementById('log').firstChild);
+}
+
+function updateUI() {
+  document.getElementById('v-psi').textContent = tri.psi.toFixed(2);
+  document.getElementById('v-omega').textContent = tri.omega.toFixed(2);
+  document.getElementById('v-lambda').textContent = tri.lambda.toFixed(2);
+  document.getElementById('delta').textContent = dev().toFixed(3);
+  document.getElementById('y').textContent = STATE.y.toFixed(3);
+  document.getElementById('phase').textContent = PHASES[STATE.phase];
+  document.getElementById('spiral').textContent = 'L' + Spiral.level;
+}
+
+log('MONOMODE · мозг активен', 'cmd');
+log('граф: ' + G.data.size + ' связей', '');
+log('спираль: L' + Spiral.level, '');
+setInterval(updateUI, 500);
+setInterval(() => { triStep(); cycleStep(); updateUI(); }, 1000);
+<\/script></body></html>`;
+
+// MONOMOD — Тонкий чат
+const MONOMOD_STRING = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>MONOMOD · Чат</title>
+<style>
+body{background:#050508;color:#c8c8d4;font-family:monospace;padding:20px;display:flex;flex-direction:column;height:100vh}
+h1{color:#ffd700;letter-spacing:4px;font-size:14px;margin-bottom:20px}
+#answer{flex:1;padding:16px;background:#0a0a12;border:1px solid #ffd700;color:#ffd700;font-size:16px;text-align:center;display:flex;align-items:center;justify-content:center;min-height:120px;margin-bottom:20px;line-height:1.6}
+#meta{font-size:10px;color:#555;margin-bottom:10px;min-height:14px}
+input{width:100%;padding:12px;background:#0a0a12;border:1px solid #1c1c26;color:#c8c8d4;font:inherit;font-size:14px}
+</style></head><body>
+<h1>MONOMOD</h1>
+<div id="answer">...</div>
+<div id="meta"></div>
+<input id="input" placeholder="..." autocomplete="off" autofocus>
+<script>
+const channel = new BroadcastChannel('monomod_chat');
+function send() {
+  const text = document.getElementById('input').value.trim();
+  if (!text) return;
+  channel.postMessage({ type: 'input', text, t: Date.now() });
+  document.getElementById('input').value = '';
+  document.getElementById('answer').textContent = '...';
+  document.getElementById('answer').style.opacity = '0.3';
+}
+channel.onmessage = (e) => {
+  if (e.data.type === 'response') {
+    document.getElementById('answer').textContent = e.data.text;
+    document.getElementById('answer').style.opacity = '1';
+    document.getElementById('meta').textContent = e.data.meta || '';
+  }
+};
+document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+<\/script></body></html>`;
+
+// ═══════════════════════════════════════════════
+// РЕЕСТР ПРИЛОЖЕНИЙ
+// ═══════════════════════════════════════════════
+const REGISTRY_KEY = 'monomod_registry';
+
+function getRegistry() { return JSON.parse(localStorage.getItem(REGISTRY_KEY) || '[]'); }
+function saveRegistry(r) { localStorage.setItem(REGISTRY_KEY, JSON.stringify(r)); }
+
+function registerApp(app) {
+  const registry = getRegistry();
+  const existing = registry.findIndex(a => a.id === app.id);
+  if (existing >= 0) {
+    registry[existing] = { ...registry[existing], ...app, updated: Date.now() };
+  } else {
+    registry.push({ ...app, created: Date.now() });
+  }
+  saveRegistry(registry);
+  renderSlider();
+  log('приложение: ' + app.id, 'gold');
+}
+
+// ═══════════════════════════════════════════════
+// СЛАЙДЕР
+// ═══════════════════════════════════════════════
+function renderSlider() {
+  const slider = document.getElementById('slider');
+  const nav = document.getElementById('nav');
+  slider.innerHTML = '';
+  nav.innerHTML = '';
+  
+  // Базовые приложения
+  const apps = [
+    { id: 'MONOMODE', name: 'MONOMODE', desc: 'Мозг · вся логика L1-L9 · граф · триада · декодер · генераторы', string: MONOMODE_STRING, type: 'core' },
+    { id: 'MONOMOD', name: 'MONOMOD', desc: 'Чат · принимает ввод · показывает ответ · тонкая оболочка', string: MONOMOD_STRING, type: 'core' },
+    ...getRegistry()
+  ];
+  
+  apps.forEach((app, i) => {
+    const page = document.createElement('div');
+    page.className = 'page';
+    page.innerHTML = \`
+      <div class="page-label"><b>\${app.id}</b> · \${app.type || 'app'}</div>
+      <div class="page-title">\${app.name}</div>
+      <div class="page-desc">\${app.desc}</div>
+      <button class="launch-btn" data-id="\${app.id}">ЗАПУСТИТЬ</button>
+    \`;
+    page.querySelector('.launch-btn').onclick = () => launchApp(app);
+    slider.appendChild(page);
+    
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.onclick = () => slider.children[i].scrollIntoView({ behavior: 'smooth' });
+    nav.appendChild(dot);
+  });
+  
+  slider.onscroll = () => {
+    const idx = Math.round(slider.scrollLeft / window.innerWidth);
+    nav.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  };
+}
+
+function launchApp(app) {
+  const blob = new Blob([app.string], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  log('запуск: ' + app.id, 'cmd');
+}
+
+// ═══════════════════════════════════════════════
+// ТЕРМИНАЛ
+// ═══════════════════════════════════════════════
+const terminal = document.getElementById('terminal');
+function log(text, cls = '') {
+  const div = document.createElement('div');
+  div.className = 'line ' + cls;
+  div.textContent = '[' + new Date().toTimeString().slice(0, 8) + '] ' + text;
+  terminal.appendChild(div);
+  while (terminal.children.length > 50) terminal.removeChild(terminal.firstChild);
+}
+
+// Слушаем MONOMODE
+const shellChannel = new BroadcastChannel('monomod_shell');
+shellChannel.onmessage = (e) => {
+  if (e.data.type === 'register_app') registerApp(e.data.app);
+  if (e.data.type === 'log') log(e.data.text, e.data.cls);
+};
+
+// ═══════════════════════════════════════════════
+// СТАТУС
+// ═══════════════════════════════════════════════
+function updateStatus() {
+  const raw = localStorage.getItem('monomod_universal_graph_v1') || '[]';
+  let data = [];
+  try { data = JSON.parse(raw); } catch(e) {}
+  const spiral = JSON.parse(localStorage.getItem('mm_spiral') || '{}');
+  
+  let h = 0;
+  for (let i = 0; i < raw.length; i++) { h = ((h << 5) - h) + raw.charCodeAt(i); h |= 0; }
+  
+  document.getElementById('hash').textContent = Math.abs(h).toString(16).toUpperCase().slice(-4);
+  document.getElementById('level').textContent = spiral.level || 0;
+  document.getElementById('edges').textContent = data.length;
+}
+
+// ═══════════════════════════════════════════════
+// СТАРТ
+// ═══════════════════════════════════════════════
+renderSlider();
+log('оболочка · ' + (getRegistry().length + 2) + ' приложений', 'cmd');
+log('MONOMODE + MONOMOD + сгенерированные', '');
+updateStatus();
+setInterval(updateStatus, 2000);
+
+if ('serviceWorker' in navigator) {
+  // Регистрация SW для PWA (если есть sw.js)
+  // navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
