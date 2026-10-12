@@ -10,63 +10,93 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:#050508;color:#c8c8d4;font-family:'Courier New',monospace;overflow:hidden}
-body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0}
 
-#slider{
+/* ═══ ГОРИЗОНТАЛЬНЫЙ СЛАЙДЕР (вкладки) ═══ */
+#h-slider{
   display:flex;height:100%;overflow-x:auto;overflow-y:hidden;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
   scrollbar-width:none;
 }
-#slider::-webkit-scrollbar{display:none}
+#h-slider::-webkit-scrollbar{display:none}
 
-.view{
+.tab{
   flex:0 0 100vw;height:100%;scroll-snap-align:start;
   display:flex;flex-direction:column;
   border-right:1px solid #14141c;
-  padding:16px;padding-top:calc(16px + env(safe-area-inset-top));
-  overflow-y:auto;
+  position:relative;
 }
 
-/* ВИД 1 · СОСТОЯНИЕ */
-#view-state{align-items:center;justify-content:center;text-align:center}
-.sphere{
-  width:140px;height:140px;border-radius:50%;
-  background:radial-gradient(circle,#4dd0c7 0%,transparent 70%);
-  opacity:0.6;animation:breathe 6s infinite ease-in-out;
-  margin-bottom:24px;
+/* ═══ ВКЛАДКА 1: СОСТОЯНИЕ (только горизонталь) ═══ */
+#tab-state{align-items:center;justify-content:center}
+.state-canvas{width:100%;height:100%;position:absolute;top:0;left:0}
+.state-info{
+  position:absolute;bottom:80px;left:0;right:0;
+  text-align:center;font-size:10px;color:#555;z-index:2;
+  pointer-events:none;
 }
-@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08);filter:blur(2px)}}
-.sphere.golden{background:radial-gradient(circle,#ffd700 0%,transparent 70%);opacity:0.9;box-shadow:0 0 40px rgba(255,215,0,0.4)}
-.sphere.silent{background:radial-gradient(circle,#333 0%,transparent 70%);opacity:0.3;animation:none}
-.state-title{font-size:11px;letter-spacing:3px;color:#555;margin-bottom:16px}
-.triad{display:flex;gap:8px;margin-bottom:20px;width:100%;max-width:300px}
-.triad>div{flex:1;padding:8px;border:1px solid #1c1c26;text-align:center;font-size:10px}
-.triad .v{display:block;font-size:16px;font-weight:bold;margin-top:4px}
-.triad .p{color:#e8c39e}.triad .o{color:#7aa2ff}.triad .l{color:#ffa840}
-.metrics{font-size:10px;color:#555;line-height:1.8}
-.metrics b{color:#ffd700}
-.echo{margin-top:20px;padding:16px;background:#0a0a12;border:1px solid #ffd700;color:#ffd700;font-size:14px;min-height:60px;display:flex;align-items:center;justify-content:center;line-height:1.5;word-break:break-word}
+.state-info b{color:#ffd700}
+.state-label{
+  position:absolute;top:20px;left:0;right:0;
+  text-align:center;font-size:11px;letter-spacing:3px;color:#4dd0c7;z-index:2;
+}
 
-/* ВИД 2 · ВВОД */
-#view-input{justify-content:flex-end;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-#input-label{font-size:10px;color:#555;letter-spacing:2px;margin-bottom:12px;text-align:center}
-#input-field{
+/* ═══ ВЕРТИКАЛЬНЫЙ СЛАЙДЕР (ввод внутри вкладки) ═══ */
+.v-slider{
+  display:flex;flex-direction:column;height:100%;
+  overflow-y:auto;scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+.v-page{
+  flex:0 0 100%;scroll-snap-align:start;
+  display:flex;flex-direction:column;
+  padding:16px;padding-top:calc(40px + env(safe-area-inset-top));
+}
+
+/* ═══ ВКЛАДКА 2: ОТВЕТ ═══ */
+#tab-answer .v-top{flex:1;display:flex;flex-direction:column;justify-content:center;padding:16px}
+.answer-box{
+  padding:20px;background:#0a0a12;border:1px solid #ffd700;
+  color:#ffd700;font-size:16px;text-align:center;
+  min-height:120px;display:flex;align-items:center;justify-content:center;
+  line-height:1.6;word-break:break-word;border-radius:4px;
+}
+.answer-meta{font-size:10px;color:#555;margin-top:12px;text-align:center}
+.answer-hint{font-size:9px;color:#333;text-align:center;margin-top:20px}
+
+#tab-answer .v-input{
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom));
+}
+.input-label{font-size:10px;color:#555;letter-spacing:2px;margin-bottom:12px;text-align:center}
+.input-field{
   width:100%;padding:14px;background:#0a0a12;border:1px solid #1c1c26;
   color:#c8c8d4;font:inherit;font-size:15px;outline:none;border-radius:4px;
 }
-#input-field:focus{border-color:#4dd0c7}
-.hint{font-size:9px;color:#333;text-align:center;margin-top:10px}
+.input-field:focus{border-color:#4dd0c7}
 
-/* ВИД 3 · МОЗГ */
-#view-brain .brain-title{font-size:11px;letter-spacing:3px;color:#4dd0c7;margin-bottom:12px}
-#brain-hud{font-size:10px;color:#555;margin-bottom:12px}
-#brain-hud b{color:#ffd700}
-#brain-log{font-size:10px;line-height:1.5;color:#555;max-height:40vh;overflow-y:auto}
-#brain-log div{padding:2px 0;border-bottom:1px dotted #14141c}
-#brain-log .gold{color:#ffd700}
-#brain-log .cmd{color:#4dd0c7}
+/* ═══ ВКЛАДКА 3: ЛОГ ═══ */
+#tab-log .v-top{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:16px}
+.log-title{font-size:11px;letter-spacing:3px;color:#4dd0c7;margin-bottom:12px}
+.log-metrics{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  margin-bottom:12px;font-size:10px;
+}
+.log-metrics .m{padding:6px;background:#0a0a12;border:1px solid #14141c;border-radius:3px}
+.log-metrics .k{color:#555;display:block;font-size:8px}
+.log-metrics .v{color:#ffd700;font-size:12px}
+.log-box{flex:1;overflow-y:auto;font-size:10px;line-height:1.5;color:#555}
+.log-box div{padding:2px 0;border-bottom:1px dotted #14141c}
+.log-box .gold{color:#ffd700}
+.log-box .cmd{color:#4dd0c7}
+.log-box .err{color:#ff4757}
 
-/* НАВИГАЦИЯ */
+#tab-log .v-input{
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom));
+}
+
+/* ═══ НАВИГАЦИЯ ═══ */
 #nav{
   position:fixed;bottom:calc(10px + env(safe-area-inset-bottom));
   left:50%;transform:translateX(-50%);
@@ -76,7 +106,6 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 }
 .dot{width:6px;height:6px;border-radius:50%;background:#333;cursor:pointer;transition:0.2s}
 .dot.active{background:#4dd0c7;width:18px;border-radius:3px}
-.dot.locked{opacity:0.3}
 
 #top-status{
   position:fixed;top:calc(8px + env(safe-area-inset-top));
@@ -88,350 +117,511 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 </head>
 <body>
 
-<div id="slider">
-  <!-- ВИД 1: СОСТОЯНИЕ -->
-  <div class="view" id="view-state">
-    <div class="state-title">MONOMOD · СОСТОЯНИЕ</div>
-    <div class="sphere" id="sphere"></div>
-    <div class="triad">
-      <div class="p">Ψ<span class="v" id="v-psi">.36</span></div>
-      <div class="o">Ω<span class="v" id="v-omega">.33</span></div>
-      <div class="l">Λ<span class="v" id="v-lambda">.31</span></div>
+<!-- ГОРИЗОНТАЛЬНЫЙ СЛАЙДЕР -->
+<div id="h-slider">
+  
+  <!-- ВКЛАДКА 1: СОСТОЯНИЕ (только горизонталь) -->
+  <div class="tab" id="tab-state">
+    <canvas class="state-canvas" id="state-canvas"></canvas>
+    <div class="state-label" id="state-label">ТИШИНА</div>
+    <div class="state-info">
+      δ: <b id="s-delta">0.000</b> · y: <b id="s-y">110.347</b><br>
+      фаза: <b id="s-phase">collect</b> · L<b id="s-level">0</b><br>
+      хэш: <b id="s-hash">—</b> · <b id="s-edges">0</b> связей
     </div>
-    <div class="metrics">
-      δ: <b id="m-delta">0.000</b> · y: <b id="m-y">110.347</b><br>
-      фаза: <b id="m-phase">collect</b> · L<b id="m-level">0</b><br>
-      хэш: <b id="m-hash">—</b> · <b id="m-edges">0</b> связей
-    </div>
-    <div class="echo" id="echo">тишина...</div>
   </div>
 
-  <!-- ВИД 2: ВВОД -->
-  <div class="view" id="view-input">
-    <div id="input-label">ИМПУЛЬС</div>
-    <input id="input-field" placeholder="свет глубина смысл" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <div class="hint">ввод накапливает граф · свайп вверх — мозг</div>
+  <!-- ВКЛАДКА 2: ОТВЕТ (горизонталь + вертикаль) -->
+  <div class="tab" id="tab-answer">
+    <div class="v-slider">
+      <div class="v-page v-top">
+        <div class="answer-box" id="answer-box">тишина...</div>
+        <div class="answer-meta" id="answer-meta"></div>
+        <div class="answer-hint">↑ свайп для ввода</div>
+      </div>
+      <div class="v-page v-input">
+        <div class="input-label">ИМПУЛЬС</div>
+        <input class="input-field" id="input-2" placeholder="свет глубина смысл" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      </div>
+    </div>
   </div>
 
-  <!-- ВИД 3: МОЗГ -->
-  <div class="view" id="view-brain">
-    <div class="brain-title">MONOMODE · МОЗГ</div>
-    <div id="brain-hud">δ: <b id="b-delta">0.000</b> · y: <b id="b-y">110.347</b> · L<b id="b-level">0</b></div>
-    <div id="brain-log"></div>
+  <!-- ВКЛАДКА 3: ЛОГ (горизонталь + вертикаль) -->
+  <div class="tab" id="tab-log">
+    <div class="v-slider">
+      <div class="v-page v-top">
+        <div class="log-title">MONOMODE · ЛОГ</div>
+        <div class="log-metrics">
+          <div class="m"><span class="k">Ψ</span><span class="v" id="l-psi">.36</span></div>
+          <div class="m"><span class="k">Ω</span><span class="v" id="l-omega">.33</span></div>
+          <div class="m"><span class="k">Λ</span><span class="v" id="l-lambda">.31</span></div>
+          <div class="m"><span class="k">δ</span><span class="v" id="l-delta">0.000</span></div>
+          <div class="m"><span class="k">y</span><span class="v" id="l-y">110.347</span></div>
+          <div class="m"><span class="k">связей</span><span class="v" id="l-edges">0</span></div>
+          <div class="m"><span class="k">фаза</span><span class="v" id="l-phase">collect</span></div>
+          <div class="m"><span class="k">уровень</span><span class="v" id="l-level">L0</span></div>
+        </div>
+        <div class="log-box" id="log-box"></div>
+      </div>
+      <div class="v-page v-input">
+        <div class="input-label">ИМПУЛЬС</div>
+        <input class="input-field" id="input-3" placeholder="свет глубина смысл" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      </div>
+    </div>
   </div>
+
 </div>
 
 <div id="nav">
   <div class="dot active" data-idx="0"></div>
   <div class="dot" data-idx="1"></div>
-  <div class="dot locked" data-idx="2" id="dot-brain"></div>
+  <div class="dot" data-idx="2"></div>
 </div>
 
 <div id="top-status">L<b id="t-level">0</b> · <b id="t-edges">0</b></div>
 
 <script>
 // ═══════════════════════════════════════════════
-// ЯДРО · ОДИН КОНТЕКСТ
+// КОНВЕЙЕР (единый мозг)
 // ═══════════════════════════════════════════════
-var CORE = { opt: 110.347, min: 68, max: 194 };
-var STATE = { y: 110.347, breath: 0, phase: 0, spiral: 0 };
-var K = function(y){ return (y>=68 && y<=194) ? y : 68 + ((y-68) % 126); };
-
-var tri = { psi: 0.36, lambda: 0.31, omega: 0.33 };
-function triStep(){
-  var t = 1/3;
-  tri.psi += (0 - 0.5*(tri.psi-t))*0.01;
-  tri.omega += (0 - 0.5*(tri.omega-t))*0.01;
-  tri.lambda += (0 - 0.5*(tri.lambda-t))*0.01;
-  var s = tri.psi + tri.omega + tri.lambda;
-  tri.psi /= s; tri.omega /= s; tri.lambda /= s;
-}
-function dev(){ return Math.max(Math.abs(tri.psi-1/3), Math.abs(tri.omega-1/3), Math.abs(tri.lambda-1/3)); }
-
-var PHASES = ['collect','filter','route','process','reflect','crystal','release'];
-function cycleStep(){ STATE.phase = (STATE.phase + 1) % 7; }
-
-// ═══════════════════════════════════════════════
-// ГРАФ (единый для всех видов)
-// ══════════════════════════════════════════════
-var G = {
-  data: new Map(),
-  load: function(){
-    try {
-      var r = localStorage.getItem('monomod_universal_graph_v1');
-      if (r) this.data = new Map(JSON.parse(r));
-    } catch(e){}
+var Conveyor = {
+  state: {
+    y: 110.347,
+    breath: 0,
+    phase: 0,
+    spiral: 0,
+    systemState: 'idle' // idle, collecting, processing, resonance, rupture, ring
   },
-  save: function(){
-    localStorage.setItem('monomod_universal_graph_v1', JSON.stringify(Array.from(this.data.entries())));
-  },
-  strengthen: function(a, b, type, plane){
-    var key = [a,b].sort().join('\u2192');
-    var e = this.data.get(key) || { w: 0.3, c: 0, type: type||'linear', plane: plane||'\u043F\u0440\u044F\u043C\u0430\u044F', t: Date.now() };
-    e.w = Math.min(1, e.w * 1.05);
-    e.c++;
-    e.t = Date.now();
-    this.data.set(key, e);
-    this.save();
-  },
-  getRelated: function(word, minW){
-    var result = [];
-    minW = minW || 0.5;
-    this.data.forEach(function(link, key){
-      if (link.w >= minW) {
-        var parts = key.split('\u2192');
-        if (parts[0] === word) result.push({ word: parts[1], w: link.w, type: link.type });
-        else if (parts[1] === word) result.push({ word: parts[0], w: link.w, type: link.type });
-      }
-    });
-    return result.sort(function(a,b){ return b.w - a.w; });
-  },
-  topWeight: function(){
-    var max = 0;
-    this.data.forEach(function(l){ if (l.w > max) max = l.w; });
-    return max;
-  },
-  detectPlane: function(t){
-    if (/\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442|/.test(t)) return '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442';
-    if (/\u0437\u0435\u0440\u043A\u0430\u043B|\u043E\u0442\u0440\u0430\u0436|\u0434\u0432\u043E\u0438\u043D/.test(t)) return '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F';
-    if (/\u0432\u043D\u0443\u0442\u0440|\u0438\u0437\u043D\u0443\u0442\u0440\u0438|\u0433\u043B\u0443\u0431/.test(t)) return '\u0438\u0437\u043D\u0443\u0442\u0440\u0438';
-    if (/\u043C\u0435\u0436\u0434\u0443|\u043F\u0435\u0440\u0435\u0445\u043E\u0434/.test(t)) return '\u043C\u0435\u0436\u0434\u0443';
-    if (/\u043D\u0438\u0447\u0435\u0433|\u043D\u043E\u043B\u044C|\u043F\u0443\u0441\u0442/.test(t)) return '\u043D\u0438\u043A\u0430\u043A';
-    return '\u043F\u0440\u044F\u043C\u0430\u044F';
-  },
-  detectType: function(t){
-    if (/\u0434\u043E|\u043F\u0435\u0440\u0435\u0434|\u0440\u0430\u043D\u044C\u0448\u0435/.test(t)) return 'before';
-    if (/\u0432\u043F\u0435\u0440\u0432\u044B\u0435|\u043D\u0430\u0447\u0430\u043B\u043E/.test(t)) return 'first';
-    if (/\u043E\u0442\u0440\u0430\u0436|\u0437\u0435\u0440\u043A\u0430\u043B/.test(t)) return 'mirror';
-    return 'linear';
-  }
-};
-G.load();
-
-// ═══════════════════════════════════════════════
-// ГЕНЕРАТОРЫ
-// ═══════════════════════════════════════════════
-var INV = {
-  '\u0441\u0432\u0435\u0442': '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E \u0442\u0435\u043D\u0438',
-  '\u0442\u044C\u043C\u0430': '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E \u0441\u0432\u0435\u0442\u0430',
-  '\u0433\u043B\u0443\u0431\u0438\u043D\u0430': '\u0442\u043E, \u0447\u0442\u043E \u043D\u0430 \u043F\u043E\u0432\u0435\u0440\u0445\u043D\u043E\u0441\u0442\u0438',
-  '\u0441\u0432\u044F\u0437\u044C': '\u0442\u043E, \u0447\u0442\u043E \u043C\u0435\u0436\u0434\u0443',
-  '\u0441\u043C\u044B\u0441\u043B': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0441\u043B\u043E\u0432\u0430',
-  '\u0444\u043E\u0440\u043C\u0430': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0444\u043E\u0440\u043C\u044B',
-  '\u044F': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u044F',
-  '\u0442\u044B': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0442\u0435\u0431\u044F',
-  '\u0442\u0438\u0448\u0438\u043D\u0430': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0437\u0432\u0443\u043A\u0430',
-  '\u043F\u0430\u043C\u044F\u0442\u044C': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0437\u0430\u0431\u0432\u0435\u043D\u0438\u044F'
-};
-
-function generateMeaning(words, plane){
-  var best = words[0];
-  var related = G.getRelated(best, 0.5);
-  var edges = G.data.size;
   
-  if (edges < 15) {
-    if (related.length === 0) return best;
-    var c = related[Math.floor(Math.random() * Math.min(3, related.length))];
-    if (c.type === 'before') return '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E ' + c.word;
-    if (c.type === 'first') return c.word + ' \u2014 \u0432\u043F\u0435\u0440\u0432\u044B\u0435';
-    if (c.type === 'mirror') return c.word + ' \u043A\u0430\u043A \u043E\u0442\u0440\u0430\u0436\u0435\u043D\u0438\u0435 ' + best;
-    return best + ' \u00B7 ' + c.word;
-  }
+  tri: { psi: 0.36, lambda: 0.31, omega: 0.33 },
   
-  if (edges < 30) {
-    var chain = [best];
-    var cur = best;
-    for (var i = 0; i < 2; i++) {
-      var rel = G.getRelated(cur, 0.5).filter(function(r){ return chain.indexOf(r.word) < 0; });
-      if (rel.length === 0) break;
-      chain.push(rel[0].word);
-      cur = rel[0].word;
+  G: {
+    data: new Map(),
+    load: function(){
+      try {
+        var r = localStorage.getItem('monomod_universal_graph_v1');
+        if (r) this.data = new Map(JSON.parse(r));
+      } catch(e){}
+    },
+    save: function(){
+      localStorage.setItem('monomod_universal_graph_v1', JSON.stringify(Array.from(this.data.entries())));
+    },
+    strengthen: function(a, b, type, plane){
+      var key = [a,b].sort().join('\u2192');
+      var e = this.data.get(key) || { w: 0.3, c: 0, type: type||'linear', plane: plane||'\u043F\u0440\u044F\u043C\u0430\u044F', t: Date.now() };
+      e.w = Math.min(1, e.w * 1.05);
+      e.c++;
+      e.t = Date.now();
+      this.data.set(key, e);
+      this.save();
+    },
+    getRelated: function(word, minW){
+      var result = [];
+      minW = minW || 0.5;
+      this.data.forEach(function(link, key){
+        if (link.w >= minW) {
+          var parts = key.split('\u2192');
+          if (parts[0] === word) result.push({ word: parts[1], w: link.w, type: link.type });
+          else if (parts[1] === word) result.push({ word: parts[0], w: link.w, type: link.type });
+        }
+      });
+      return result.sort(function(a,b){ return b.w - a.w; });
+    },
+    topWeight: function(){
+      var max = 0;
+      this.data.forEach(function(l){ if (l.w > max) max = l.w; });
+      return max;
+    },
+    detectPlane: function(t){
+      if (/\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442|\u0432\u0441\u043F\u044F\u0442\u044C|\u043E\u0431\u0440\u0430\u0442\u043D/.test(t)) return '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442';
+      if (/\u0437\u0435\u0440\u043A\u0430\u043B|\u043E\u0442\u0440\u0430\u0436|\u0434\u0432\u043E\u0438\u043D/.test(t)) return '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F';
+      if (/\u0432\u043D\u0443\u0442\u0440|\u0438\u0437\u043D\u0443\u0442\u0440\u0438|\u0433\u043B\u0443\u0431/.test(t)) return '\u0438\u0437\u043D\u0443\u0442\u0440\u0438';
+      if (/\u043C\u0435\u0436\u0434\u0443|\u043F\u0435\u0440\u0435\u0445\u043E\u0434/.test(t)) return '\u043C\u0435\u0436\u0434\u0443';
+      if (/\u043D\u0438\u0447\u0435\u0433|\u043D\u043E\u043B\u044C|\u043F\u0443\u0441\u0442/.test(t)) return '\u043D\u0438\u043A\u0430\u043A';
+      return '\u043F\u0440\u044F\u043C\u0430\u044F';
+    },
+    detectType: function(t){
+      if (/\u0434\u043E|\u043F\u0435\u0440\u0435\u0434|\u0440\u0430\u043D\u044C\u0448\u0435/.test(t)) return 'before';
+      if (/\u0432\u043F\u0435\u0440\u0432\u044B\u0435|\u043D\u0430\u0447\u0430\u043B\u043E/.test(t)) return 'first';
+      if (/\u043E\u0442\u0440\u0430\u0436|\u0437\u0435\u0440\u043A\u0430\u043B/.test(t)) return 'mirror';
+      return 'linear';
     }
-    return chain.join(' \u00B7 ');
-  }
+  },
   
-  if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') return best + ' \u2194 ' + best;
-  if (plane === '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442') return '\u043D\u0435 ' + best + ', \u0430 \u0442\u043E, \u0447\u0442\u043E \u0440\u044F\u0434\u043E\u043C';
-  if (INV[best]) return INV[best];
-  return '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E ' + best;
-}
-
-function generateForm(meaning, plane){
-  if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') return '\u2194 ' + meaning + ' \u2194';
-  if (plane === '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442') return '\u00AC' + meaning;
-  if (plane === '\u0438\u0437\u043D\u0443\u0442\u0440\u0438') return '(' + meaning + ')';
-  return meaning;
-}
-
-function generateAction(plane, edges){
-  if (plane === '\u043D\u0438\u043A\u0430\u043A') return '\u23F3 \u0436\u0434\u0438';
-  if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') return '\uD83E\uDE9E \u043F\u0440\u0438\u043C\u0438';
-  if (edges < 15) return '\uD83D\uDD17 \u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u044F\u0437\u0438';
-  if (edges < 30) return '\uD83D\uDD0D \u0443\u0433\u043B\u0443\u0431\u0438';
-  return '\u25B6 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0439';
-}
-
-// ══════════════════════════════════════════════
-// КОНВЕЙЕР
-// ═══════════════════════════════════════════════
-function process(raw){
-  STATE.breath++;
-  cycleStep();
-  triStep();
+  PHASES: ['collect','filter','route','process','reflect','crystal','release'],
   
-  var words = raw.toLowerCase().replace(/[^\w\s\u0430-\u044F\u0401\u0451]/g, '').split(/\s+/).filter(function(w){ return w.length > 2; });
-  if (words.length === 0) return null;
+  INV: {
+    '\u0441\u0432\u0435\u0442': '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E \u0442\u0435\u043D\u0438',
+    '\u0442\u044C\u043C\u0430': '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E \u0441\u0432\u0435\u0442\u0430',
+    '\u0433\u043B\u0443\u0431\u0438\u043D\u0430': '\u0442\u043E, \u0447\u0442\u043E \u043D\u0430 \u043F\u043E\u0432\u0435\u0440\u0445\u043D\u043E\u0441\u0442\u0438',
+    '\u0441\u0432\u044F\u0437\u044C': '\u0442\u043E, \u0447\u0442\u043E \u043C\u0435\u0436\u0434\u0443',
+    '\u0441\u043C\u044B\u0441\u043B': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0441\u043B\u043E\u0432\u0430',
+    '\u0444\u043E\u0440\u043C\u0430': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0444\u043E\u0440\u043C\u044B',
+    '\u044F': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u044F',
+    '\u0442\u044B': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0442\u0435\u0431\u044F',
+    '\u0442\u0438\u0448\u0438\u043D\u0430': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0437\u0432\u0443\u043A\u0430',
+    '\u043F\u0430\u043C\u044F\u0442\u044C': '\u0442\u043E, \u0447\u0442\u043E \u0434\u043E \u0437\u0430\u0431\u0432\u0435\u043D\u0438\u044F'
+  },
   
-  var plane = G.detectPlane(raw);
-  var type = G.detectType(raw);
+  listeners: {},
   
-  words.forEach(function(a, i){
-    words.slice(i+1).forEach(function(b){
-      G.strengthen(a, b, type, plane);
+  on: function(event, fn) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(fn);
+  },
+  
+  emit: function(event, data) {
+    if (this.listeners[event]) {
+      this.listeners[event].forEach(function(fn) { fn(data); });
+    }
+  },
+  
+  K: function(y) { return (y >= 68 && y <= 194) ? y : 68 + ((y - 68) % 126); },
+  
+  triStep: function() {
+    var t = 1/3;
+    this.tri.psi += (0 - 0.5*(this.tri.psi-t))*0.01;
+    this.tri.omega += (0 - 0.5*(this.tri.omega-t))*0.01;
+    this.tri.lambda += (0 - 0.5*(this.tri.lambda-t))*0.01;
+    var s = this.tri.psi + this.tri.omega + this.tri.lambda;
+    this.tri.psi /= s; this.tri.omega /= s; this.tri.lambda /= s;
+  },
+  
+  dev: function() {
+    return Math.max(Math.abs(this.tri.psi-1/3), Math.abs(this.tri.omega-1/3), Math.abs(this.tri.lambda-1/3));
+  },
+  
+  cycleStep: function() {
+    this.state.phase = (this.state.phase + 1) % 7;
+  },
+  
+  process: function(raw) {
+    this.state.breath++;
+    this.cycleStep();
+    this.triStep();
+    
+    var words = raw.toLowerCase().replace(/[^\w\s\u0430-\u044F\u0401\u0451]/g, '').split(/\s+/).filter(function(w){ return w.length > 2; });
+    if (words.length === 0) return null;
+    
+    var plane = this.G.detectPlane(raw);
+    var type = this.G.detectType(raw);
+    
+    // Состояние: сбор
+    this.state.systemState = 'collecting';
+    this.emit('state:change', this.state.systemState);
+    
+    words.forEach(function(a, i){
+      words.slice(i+1).forEach(function(b){
+        Conveyor.G.strengthen(a, b, type, plane);
+      });
     });
-  });
-  
-  var meaning = generateMeaning(words, plane);
-  var form = generateForm(meaning, plane);
-  var action = generateAction(plane, G.data.size);
-  
-  STATE.y = K(STATE.y + (Math.random() - 0.5) * 20);
-  
-  // Эмерджентное рождение мозга
-  if (G.data.size >= 20 && G.topWeight() > 0.85 && STATE.spiral === 0) {
-    STATE.spiral = 1;
-    brainUnlocked = true;
-    saveSpiral();
-    logBrain('\u041C\u041E\u0417\u0413 \u0410\u041A\u0422\u0418\u0412\u0418\u0420\u041E\u0412\u0410\u041D \u00B7 L1', 'gold');
-    updateDots();
+    
+    // Состояние: обработка
+    this.state.systemState = 'processing';
+    this.emit('state:change', this.state.systemState);
+    
+    // Генерация смысла
+    var best = words[0];
+    var related = this.G.getRelated(best, 0.5);
+    var edges = this.G.data.size;
+    var meaning;
+    
+    if (edges < 15) {
+      if (related.length === 0) meaning = best;
+      else {
+        var c = related[Math.floor(Math.random() * Math.min(3, related.length))];
+        if (c.type === 'before') meaning = '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E ' + c.word;
+        else if (c.type === 'first') meaning = c.word + ' \u2014 \u0432\u043F\u0435\u0440\u0432\u044B\u0435';
+        else if (c.type === 'mirror') meaning = c.word + ' \u043A\u0430\u043A \u043E\u0442\u0440\u0430\u0436\u0435\u043D\u0438\u0435 ' + best;
+        else meaning = best + ' \u00B7 ' + c.word;
+      }
+    } else if (edges < 30) {
+      var chain = [best];
+      var cur = best;
+      for (var i = 0; i < 2; i++) {
+        var rel = this.G.getRelated(cur, 0.5).filter(function(r){ return chain.indexOf(r.word) < 0; });
+        if (rel.length === 0) break;
+        chain.push(rel[0].word);
+        cur = rel[0].word;
+      }
+      meaning = chain.join(' \u00B7 ');
+    } else {
+      if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') meaning = best + ' \u2194 ' + best;
+      else if (plane === '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442') meaning = '\u043D\u0435 ' + best + ', \u0430 \u0442\u043E, \u0447\u0442\u043E \u0440\u044F\u0434\u043E\u043C';
+      else if (this.INV[best]) meaning = this.INV[best];
+      else meaning = '\u0442\u043E, \u0447\u0442\u043E \u0431\u044B\u043B\u043E \u0434\u043E ' + best;
+    }
+    
+    // Форма
+    var form;
+    if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') form = '\u2194 ' + meaning + ' \u2194';
+    else if (plane === '\u043D\u0430\u043E\u0431\u043E\u0440\u043E\u0442') form = '\u00AC' + meaning;
+    else if (plane === '\u0438\u0437\u043D\u0443\u0442\u0440\u0438') form = '(' + meaning + ')';
+    else form = meaning;
+    
+    // Действие
+    var action;
+    if (plane === '\u043D\u0438\u043A\u0430\u043A') action = '\u23F3 \u0436\u0434\u0438';
+    else if (plane === '\u0437\u0435\u0440\u043A\u0430\u043B\u044C\u043D\u0430\u044F') action = '\uD83E\uDE9E \u043F\u0440\u0438\u043C\u0438';
+    else if (edges < 15) action = '\uD83D\uDD17 \u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u044F\u0437\u0438';
+    else if (edges < 30) action = '\uD83D\uDD0D \u0443\u0433\u043B\u0443\u0431\u0438';
+    else action = '\u25B6 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0439';
+    
+    // Дрейф
+    this.state.y = this.K(this.state.y + (Math.random() - 0.5) * 20);
+    
+    // Состояние: резонанс или разрыв
+    var topW = this.G.topWeight();
+    if (topW > 0.9 && edges > 20) {
+      this.state.systemState = 'resonance';
+    } else if (this.dev() > 0.12) {
+      this.state.systemState = 'rupture';
+    } else {
+      this.state.systemState = 'collecting';
+    }
+    this.emit('state:change', this.state.systemState);
+    
+    // Эмерджентное рождение
+    if (edges >= 20 && topW > 0.85 && this.state.spiral === 0) {
+      this.state.spiral = 1;
+      localStorage.setItem('mm_spiral', JSON.stringify({ level: 1 }));
+      this.emit('spiral:up', 1);
+    }
+    
+    return {
+      meaning: meaning,
+      form: form,
+      action: action,
+      plane: plane,
+      type: type,
+      edges: edges,
+      topWeight: topW
+    };
   }
-  
-  return { meaning: meaning, form: form, action: action, plane: plane };
-}
+};
+
+Conveyor.G.load();
 
 // ═══════════════════════════════════════════════
-// UI
+// АНИМАЦИЯ СОСТОЯНИЯ (ВКЛАДКА 1)
 // ═══════════════════════════════════════════════
-var slider = document.getElementById('slider');
-var dots = document.querySelectorAll('.dot');
-var brainUnlocked = false;
+var canvas = document.getElementById('state-canvas');
+var ctx = canvas.getContext('2d');
+var animState = 'idle';
+var animTime = 0;
 
-function saveSpiral(){
-  localStorage.setItem('mm_spiral', JSON.stringify({ level: STATE.spiral }));
+function resizeCanvas() {
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
 }
-function loadSpiral(){
-  try {
-    var s = JSON.parse(localStorage.getItem('mm_spiral') || '{}');
-    STATE.spiral = s.level || 0;
-    if (STATE.spiral > 0) brainUnlocked = true;
-  } catch(e){}
-}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-function updateDots(){
-  var brainDot = document.getElementById('dot-brain');
-  if (brainUnlocked) brainDot.className = 'dot';
-}
-
-function goToView(idx){
-  slider.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-}
-
-dots.forEach(function(dot){
-  dot.addEventListener('click', function(){
-    var idx = parseInt(dot.getAttribute('data-idx'));
-    if (idx === 2 && !brainUnlocked) return;
-    goToView(idx);
-  });
+Conveyor.on('state:change', function(state) {
+  animState = state;
+  var labels = {
+    'idle': '\u0422\u0418\u0428\u0418\u041D\u0410',
+    'collecting': '\u0421\u0411\u041E\u0420',
+    'processing': '\u041E\u0411\u0420\u0410\u0411\u041E\u0422\u041A\u0410',
+    'resonance': '\u0420\u0415\u0417\u041E\u041D\u0410\u041D\u0421',
+    'rupture': '\u0420\u0410\u0417\u0420\u042B\u0412',
+    'ring': '\u041A\u041E\u041B\u042C\u0426\u041E'
+  };
+  document.getElementById('state-label').textContent = labels[state] || state.toUpperCase();
 });
 
-slider.addEventListener('scroll', function(){
-  var idx = Math.round(slider.scrollLeft / window.innerWidth);
-  dots.forEach(function(d, i){
-    d.className = 'dot' + (i === idx ? ' active' : '') + (i === 2 && !brainUnlocked ? ' locked' : '');
-  });
-});
-
-function updateUI(){
-  document.getElementById('v-psi').textContent = tri.psi.toFixed(2);
-  document.getElementById('v-omega').textContent = tri.omega.toFixed(2);
-  document.getElementById('v-lambda').textContent = tri.lambda.toFixed(2);
-  document.getElementById('m-delta').textContent = dev().toFixed(3);
-  document.getElementById('m-y').textContent = STATE.y.toFixed(3);
-  document.getElementById('m-phase').textContent = PHASES[STATE.phase];
-  document.getElementById('m-level').textContent = STATE.spiral;
-  document.getElementById('b-delta').textContent = dev().toFixed(3);
-  document.getElementById('b-y').textContent = STATE.y.toFixed(3);
-  document.getElementById('b-level').textContent = STATE.spiral;
+function drawState() {
+  animTime += 0.016;
+  var w = canvas.width, h = canvas.height;
+  var cx = w/2, cy = h/2;
   
-  var raw = localStorage.getItem('monomod_universal_graph_v1') || '[]';
-  var h = 0;
-  for (var i = 0; i < raw.length; i++){ h = ((h << 5) - h) + raw.charCodeAt(i); h |= 0; }
-  document.getElementById('m-hash').textContent = Math.abs(h).toString(16).toUpperCase().slice(-4);
-  document.getElementById('m-edges').textContent = G.data.size;
-  document.getElementById('t-level').textContent = STATE.spiral;
-  document.getElementById('t-edges').textContent = G.data.size;
+  ctx.fillStyle = 'rgba(5,5,8,0.15)';
+  ctx.fillRect(0, 0, w, h);
+  
+  var color, radius, alpha;
+  
+  switch(animState) {
+    case 'idle':
+      color = '#333';
+      radius = 40 + Math.sin(animTime) * 5;
+      alpha = 0.3;
+      break;
+    case 'collecting':
+      color = '#4dd0c7';
+      radius = 50 + Math.sin(animTime * 2) * 10;
+      alpha = 0.5;
+      break;
+    case 'processing':
+      color = '#8b5cf6';
+      radius = 60;
+      alpha = 0.7;
+      // Вращение
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(animTime);
+      ctx.translate(-cx, -cy);
+      break;
+    case 'resonance':
+      color = '#ffd700';
+      radius = 70 + Math.sin(animTime * 3) * 15;
+      alpha = 0.9;
+      break;
+    case 'rupture':
+      color = '#ff4757';
+      radius = 30 + Math.sin(animTime * 5) * 20;
+      alpha = 0.4;
+      break;
+    case 'ring':
+      color = '#4dd0c7';
+      radius = 80;
+      alpha = 0.6;
+      break;
+  }
   
   // Сфера
-  var sphere = document.getElementById('sphere');
-  if (G.topWeight() > 0.9 && G.data.size > 20) {
-    sphere.className = 'sphere golden';
-  } else if (G.data.size === 0) {
-    sphere.className = 'sphere silent';
-  } else {
-    sphere.className = 'sphere';
-  }
-}
-
-// ══════════════════════════════════════════════
-// ВВОД
-// ═══════════════════════════════════════════════
-var inputField = document.getElementById('input-field');
-var echoEl = document.getElementById('echo');
-
-function handleInput(){
-  var text = inputField.value.trim();
-  if (!text) return;
+  var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 2);
+  grad.addColorStop(0, color);
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.globalAlpha = alpha;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 2, 0, Math.PI * 2);
+  ctx.fill();
   
-  var result = process(text);
-  if (result) {
-    echoEl.textContent = result.form;
-    logBrain('\u0432\u0432\u043E\u0434: ' + text, 'cmd');
-    logBrain('\u043E\u0442\u0432\u0435\u0442: ' + result.form, 'gold');
-    logBrain('\u0441\u043C\u044B\u0441\u043B: ' + result.meaning, '');
-    logBrain('\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435: ' + result.action, '');
+  // Кольцо (если resonance или ring)
+  if (animState === 'resonance' || animState === 'ring') {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + 20 + Math.sin(animTime * 2) * 10, 0, Math.PI * 2);
+    ctx.stroke();
   }
-  inputField.value = '';
-  updateUI();
+  
+  ctx.globalAlpha = 1;
+  if (animState === 'processing') ctx.restore();
+  
+  requestAnimationFrame(drawState);
 }
+drawState();
 
-inputField.addEventListener('keydown', function(e){
-  if (e.key === 'Enter') handleInput();
+// ═══════════════════════════════════════════════
+// НАВИГАЦИЯ
+// ═══════════════════════════════════════════════
+var hSlider = document.getElementById('h-slider');
+var dots = document.querySelectorAll('.dot');
+
+hSlider.addEventListener('scroll', function() {
+  var idx = Math.round(hSlider.scrollLeft / window.innerWidth);
+  dots.forEach(function(d, i) {
+    d.className = 'dot' + (i === idx ? ' active' : '');
+  });
+});
+
+dots.forEach(function(dot) {
+  dot.addEventListener('click', function() {
+    var idx = parseInt(dot.getAttribute('data-idx'));
+    hSlider.children[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+  });
 });
 
 // ═══════════════════════════════════════════════
-// ЖУРНАЛ МОЗГА
+// ВВОД (ВКЛАДКА 2 и 3)
 // ═══════════════════════════════════════════════
-var brainLog = document.getElementById('brain-log');
-function logBrain(text, cls){
+var input2 = document.getElementById('input-2');
+var input3 = document.getElementById('input-3');
+var answerBox = document.getElementById('answer-box');
+var answerMeta = document.getElementById('answer-meta');
+var logBox = document.getElementById('log-box');
+
+function handleInput(text, source) {
+  if (!text) return;
+  
+  var result = Conveyor.process(text);
+  if (!result) return;
+  
+  // Обновить ответ (вкладка 2)
+  answerBox.textContent = result.form;
+  answerMeta.textContent = result.action + ' \u00B7 ' + result.plane;
+  
+  // Обновить лог (вкладка 3)
+  logEntry('\u0432\u0432\u043E\u0434: ' + text, 'cmd');
+  logEntry('\u043E\u0442\u0432\u0435\u0442: ' + result.form, 'gold');
+  logEntry('\u0441\u043C\u044B\u0441\u043B: ' + result.meaning, '');
+  logEntry('\u0444\u043E\u0440\u043C\u0430: ' + result.plane + ' \u00B7 \u0442\u0438\u043F: ' + result.type, '');
+  logEntry('\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435: ' + result.action, '');
+  
+  updateMetrics();
+}
+
+function logEntry(text, cls) {
   var d = document.createElement('div');
   if (cls) d.className = cls;
   d.textContent = '[' + new Date().toTimeString().slice(0,8) + '] ' + text;
-  brainLog.appendChild(d);
-  while (brainLog.children.length > 50) brainLog.removeChild(brainLog.firstChild);
-  brainLog.scrollTop = brainLog.scrollHeight;
+  logBox.appendChild(d);
+  while (logBox.children.length > 50) logBox.removeChild(logBox.firstChild);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+input2.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    handleInput(input2.value.trim(), 2);
+    input2.value = '';
+  }
+});
+
+input3.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    handleInput(input3.value.trim(), 3);
+    input3.value = '';
+  }
+});
+
+// ═══════════════════════════════════════════════
+// МЕТРИКИ
+// ═══════════════════════════════════════════════
+function updateMetrics() {
+  var raw = localStorage.getItem('monomod_universal_graph_v1') || '[]';
+  var h = 0;
+  for (var i = 0; i < raw.length; i++) { h = ((h << 5) - h) + raw.charCodeAt(i); h |= 0; }
+  
+  document.getElementById('s-delta').textContent = Conveyor.dev().toFixed(3);
+  document.getElementById('s-y').textContent = Conveyor.state.y.toFixed(3);
+  document.getElementById('s-phase').textContent = Conveyor.PHASES[Conveyor.state.phase];
+  document.getElementById('s-level').textContent = Conveyor.state.spiral;
+  document.getElementById('s-hash').textContent = Math.abs(h).toString(16).toUpperCase().slice(-4);
+  document.getElementById('s-edges').textContent = Conveyor.G.data.size;
+  
+  document.getElementById('l-psi').textContent = Conveyor.tri.psi.toFixed(2);
+  document.getElementById('l-omega').textContent = Conveyor.tri.omega.toFixed(2);
+  document.getElementById('l-lambda').textContent = Conveyor.tri.lambda.toFixed(2);
+  document.getElementById('l-delta').textContent = Conveyor.dev().toFixed(3);
+  document.getElementById('l-y').textContent = Conveyor.state.y.toFixed(3);
+  document.getElementById('l-edges').textContent = Conveyor.G.data.size;
+  document.getElementById('l-phase').textContent = Conveyor.PHASES[Conveyor.state.phase];
+  document.getElementById('l-level').textContent = 'L' + Conveyor.state.spiral;
+  
+  document.getElementById('t-level').textContent = Conveyor.state.spiral;
+  document.getElementById('t-edges').textContent = Conveyor.G.data.size;
 }
 
 // ═══════════════════════════════════════════════
 // СТАРТ
 // ═══════════════════════════════════════════════
-loadSpiral();
-updateDots();
-logBrain('MONOMOD \u00B7 \u043E\u0431\u043E\u043B\u043E\u0447\u043A\u0430 \u0430\u043A\u0442\u0438\u0432\u043D\u0430', 'cmd');
-logBrain('\u0433\u0440\u0430\u0444: ' + G.data.size + ' \u0441\u0432\u044F\u0437\u0435\u0439', '');
-logBrain('\u0441\u043F\u0438\u0440\u0430\u043B\u044C: L' + STATE.spiral, '');
-if (brainUnlocked) logBrain('\u043C\u043E\u0437\u0433 \u0430\u043A\u0442\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u043D', 'gold');
-updateUI();
-setInterval(function(){ triStep(); cycleStep(); updateUI(); }, 1000);
+var spiralData = {};
+try { spiralData = JSON.parse(localStorage.getItem('mm_spiral') || '{}'); } catch(e){}
+Conveyor.state.spiral = spiralData.level || 0;
+
+logEntry('MONOMOD \u00B7 \u043E\u0431\u043E\u043B\u043E\u0447\u043A\u0430 \u0430\u043A\u0442\u0438\u0432\u043D\u0430', 'cmd');
+logEntry('\u0433\u0440\u0430\u0444: ' + Conveyor.G.data.size + ' \u0441\u0432\u044F\u0437\u0435\u0439', '');
+logEntry('\u0441\u043F\u0438\u0440\u0430\u043B\u044C: L' + Conveyor.state.spiral, '');
+updateMetrics();
+
+setInterval(function() {
+  Conveyor.triStep();
+  Conveyor.cycleStep();
+  updateMetrics();
+}, 1000);
 </script>
 </body>
 </html>
